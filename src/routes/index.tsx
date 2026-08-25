@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { INSTAGRAM_URL, PRIZES, normalizeHandle, type Prize } from "@/lib/atena";
-import logo from "@/assets/atena-logo.png";
+import logoAsset from "@/assets/atena-logo-official.png.asset.json";
+
+const logo = logoAsset.url;
 
 export const Route = createFileRoute("/")({
   head: () => ({
