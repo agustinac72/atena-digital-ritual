@@ -152,3 +152,56 @@
     color: var(--color-foreground);
   }
 }
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+    letter-spacing: 0.01em;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+}
+
+@utility text-gold-gradient {
+  background-image: var(--gradient-gradient, var(--gradient-gold));
+  background-clip: text;
+  color: transparent;
+}
+
+@utility ritual-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% -5%, oklch(0.87 0.062 88 / 0.16), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 105%, oklch(0.69 0.078 78 / 0.12), transparent 70%);
+}
+
+@utility gold-line {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+}
+
+@utility panel {
+  background: linear-gradient(160deg, oklch(0.17 0.01 82 / 0.9), oklch(0.08 0.006 80 / 0.9));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-gold);
+  backdrop-filter: blur(6px);
+}
+
+@keyframes atena-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@utility rise {
+  animation: atena-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes atena-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+@utility glow-pulse {
+  animation: atena-pulse 3.2s ease-in-out infinite;
+}
