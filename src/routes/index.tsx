@@ -60,13 +60,11 @@ function Header({ step }: { step: Step }) {
     <div className="flex flex-col items-center">
       <img
         src={logo}
-        alt="Isotipo de ATENA HOUSE"
-        width={816}
-        height={816}
-        className="h-28 w-28 object-contain drop-shadow-[0_0_25px_rgba(234,211,146,0.25)]"
+        alt="Logo oficial de ATENA HOUSE"
+        width={900}
+        height={490}
+        className="w-56 object-contain drop-shadow-[0_0_35px_rgba(234,211,146,0.22)]"
       />
-      <p className="mt-3 font-display text-lg tracking-[0.55em] text-gold">ATENA</p>
-      <p className="text-[0.55rem] tracking-[0.7em] text-muted-foreground">HOUSE</p>
       <div className="mt-6 flex items-center gap-2">
         {[1, 2, 3].map((n) => (
           <span
