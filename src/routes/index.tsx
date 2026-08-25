@@ -176,9 +176,13 @@ function StepExperience({ handle }: { handle: string }) {
   const [mode, setMode] = useState<"choose" | "drink" | "vip">("choose");
 
   const save = (experience: string, prize?: string) => {
-    void supabase
+    supabase
       .from("atena_entries")
-      .insert({ instagram_handle: handle, experience, prize: prize ?? null });
+      .insert({ instagram_handle: handle, experience, prize: prize ?? null })
+      .then(({ error }) => {
+        if (error) console.error("No se pudo guardar la entrada", error);
+      });
+
   };
 
   if (mode === "drink") return <DrinkGame handle={handle} onBack={() => setMode("choose")} onWin={save} />;
