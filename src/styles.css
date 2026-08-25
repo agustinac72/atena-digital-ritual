@@ -164,7 +164,7 @@
 }
 
 @utility text-gold-gradient {
-  background-image: var(--gradient-gradient, var(--gradient-gold));
+  background-image: var(--gradient-gold);
   background-clip: text;
   color: transparent;
 }
