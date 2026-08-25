@@ -4,6 +4,37 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Albertus Nova";
+  src: url("/__l5e/assets-v1/2055f694-1040-42ea-bc2b-dffcb92ae133/albertusnovathin.otf") format("opentype");
+  font-weight: 200;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Albertus Nova";
+  src: url("/__l5e/assets-v1/1573cb36-44e7-494e-8a87-25fa86f894ea/albertusnovalight.otf") format("opentype");
+  font-weight: 300;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Albertus Nova";
+  src: url("/__l5e/assets-v1/0ff250ac-834d-4fef-8642-acfacab543bc/albertusnova.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Albertus Nova";
+  src: url("/__l5e/assets-v1/03628cda-8ed3-4551-8f9d-bb5a80f78379/albertusnova_bold.otf") format("opentype");
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Albertus Nova";
+  src: url("/__l5e/assets-v1/e30adafe-435f-4c94-8c6c-56efdef91bd4/albertusnovablack.otf") format("opentype");
+  font-weight: 900;
+  font-display: swap;
+}
+
 /*
  * Design system definition.
  *
@@ -19,7 +50,7 @@
  */
 
 @theme inline {
-  --font-display: "Cinzel", serif;
+  --font-display: "Albertus Nova", "Cinzel", serif;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --color-gold: var(--gold);
   --color-gold-deep: var(--gold-deep);
@@ -158,8 +189,9 @@
     font-family: var(--font-sans);
     letter-spacing: 0.01em;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-weight: 700;
   }
 }
 
