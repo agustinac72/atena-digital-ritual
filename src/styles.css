@@ -50,7 +50,7 @@
  */
 
 @theme inline {
-  --font-display: "Cinzel", serif;
+  --font-display: "Albertus Nova", "Cinzel", serif;
   --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
   --color-gold: var(--gold);
   --color-gold-deep: var(--gold-deep);
@@ -189,8 +189,9 @@
     font-family: var(--font-sans);
     letter-spacing: 0.01em;
   }
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    font-weight: 700;
   }
 }
 
