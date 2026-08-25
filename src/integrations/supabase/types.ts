@@ -14,7 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      atena_entries: {
+        Row: {
+          created_at: string
+          experience: string | null
+          id: string
+          instagram_handle: string
+          prize: string | null
+        }
+        Insert: {
+          created_at?: string
+          experience?: string | null
+          id?: string
+          instagram_handle: string
+          prize?: string | null
+        }
+        Update: {
+          created_at?: string
+          experience?: string | null
+          id?: string
+          instagram_handle?: string
+          prize?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
