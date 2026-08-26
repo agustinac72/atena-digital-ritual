@@ -21,6 +21,7 @@ export type Database = {
           id: string
           instagram_handle: string
           prize: string | null
+          won_drink: boolean
         }
         Insert: {
           created_at?: string
@@ -28,6 +29,7 @@ export type Database = {
           id?: string
           instagram_handle: string
           prize?: string | null
+          won_drink?: boolean
         }
         Update: {
           created_at?: string
@@ -35,6 +37,28 @@ export type Database = {
           id?: string
           instagram_handle?: string
           prize?: string | null
+          won_drink?: boolean
+        }
+        Relationships: []
+      }
+      prizes_counter: {
+        Row: {
+          id: number
+          max_drinks: number
+          total_drinks_given: number
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          max_drinks?: number
+          total_drinks_given?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          max_drinks?: number
+          total_drinks_given?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -43,7 +67,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      claim_drink: { Args: never; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
