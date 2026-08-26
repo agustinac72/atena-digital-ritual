@@ -1,18 +1,27 @@
-export type Prize = {
-  title: string;
-  detail: string;
+export type Segment = {
+  label: string;
+  win: boolean;
 };
 
-export const PRIZES: Prize[] = [
-  { title: "SHOT DE BIENVENIDA", detail: "Mostrá esta pantalla en la barra y retirá tu shot." },
-  { title: "2X1 EN BARRA", detail: "Válido para tu primer trago de la noche." },
-  { title: "TRAGO DE AUTOR", detail: "Un cocktail de la casa, cortesía de ATENA." },
-  { title: "CERVEZA HELADA", detail: "Retirala en la barra mostrando esta pantalla." },
-  { title: "COMBO 2 SHOTS", detail: "Para vos y quien vos elijas." },
-  { title: "AGUA + SHOT", detail: "Hidratación premium con regalo incluido." },
+/** 6 secciones alternadas: 3 con premio, 3 sin premio. */
+export const SEGMENTS: Segment[] = [
+  { label: "GANASTE UN TRAGO 🍸", win: true },
+  { label: "NOS VEMOS EN LA PISTA 🪩", win: false },
+  { label: "GANASTE UN TRAGO 🍸", win: true },
+  { label: "NOS VEMOS EN LA PISTA 🪩", win: false },
+  { label: "GANASTE UN TRAGO 🍸", win: true },
+  { label: "NOS VEMOS EN LA PISTA 🪩", win: false },
 ];
 
+export const WIN_INDEXES = SEGMENTS.map((s, i) => (s.win ? i : -1)).filter((i) => i >= 0);
+export const LOSE_INDEXES = SEGMENTS.map((s, i) => (!s.win ? i : -1)).filter((i) => i >= 0);
+
+export const PRIZE_LABEL = "GANASTE UN TRAGO 🍸";
+export const NO_PRIZE_LABEL = "NOS VEMOS EN LA PISTA 🪩";
+
 export const INSTAGRAM_URL = "https://instagram.com/atena.house";
+export const INSTAGRAM_OPEN_URL = "https://www.instagram.com";
+export const INSTAGRAM_HANDLE = "@atena.house";
 
 export function normalizeHandle(value: string): string {
   return value.trim().replace(/^@+/, "").replace(/\s+/g, "").toLowerCase();
