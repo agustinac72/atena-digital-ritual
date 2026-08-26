@@ -1,7 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { INSTAGRAM_URL, PRIZES, normalizeHandle, type Prize } from "@/lib/atena";
+import {
+  INSTAGRAM_URL,
+  INSTAGRAM_OPEN_URL,
+  INSTAGRAM_HANDLE,
+  SEGMENTS,
+  WIN_INDEXES,
+  LOSE_INDEXES,
+  normalizeHandle,
+} from "@/lib/atena";
 import logoAsset from "@/assets/atena-logo-official.png.asset.json";
 
 const logo = logoAsset.url;
@@ -48,8 +56,8 @@ function AtenaApp() {
         )}
         {step === 3 && <StepExperience handle={handle} />}
       </div>
-      <footer className="mt-12 text-[0.6rem] uppercase tracking-[0.4em] text-muted-foreground">
-        Atena House · Ritual Digital
+      <footer className="mt-12 text-center text-[0.6rem] uppercase tracking-[0.35em] text-gold/50">
+        Powered by Atena House
       </footer>
     </main>
   );
@@ -57,14 +65,16 @@ function AtenaApp() {
 
 function Header({ step }: { step: Step }) {
   return (
-    <div className="flex flex-col items-center">
-      <img
-        src={logo}
-        alt="Logo oficial de ATENA HOUSE"
-        width={900}
-        height={490}
-        className="w-56 object-contain drop-shadow-[0_0_35px_rgba(234,211,146,0.22)]"
-      />
+    <div className="flex w-full flex-col items-center">
+      <div className="h-40 w-[80%] overflow-hidden">
+        <img
+          src={logo}
+          alt="Logo oficial de ATENA HOUSE"
+          width={900}
+          height={490}
+          className="h-full w-full scale-[1.35] object-cover"
+        />
+      </div>
       <div className="mt-6 flex items-center gap-2">
         {[1, 2, 3].map((n) => (
           <span
@@ -128,7 +138,7 @@ function StepWelcome({ onNext }: { onNext: () => void }) {
       <Subtitle>Seguinos en Instagram para desbloquear la experiencia de esta noche.</Subtitle>
       <div className="mt-10 flex w-full flex-col gap-3">
         <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="block">
-          <GoldButton>Seguir a @atena</GoldButton>
+          <GoldButton>Seguir a {INSTAGRAM_HANDLE}</GoldButton>
         </a>
         <GoldButton variant="outline" onClick={onNext}>
           Ya sigo a Atena
@@ -172,20 +182,24 @@ function StepHandle({ onNext }: { onNext: (handle: string) => void }) {
   );
 }
 
+function saveEntry(handle: string, experience: string, wonDrink: boolean, prize?: string | null) {
+  supabase
+    .from("atena_entries")
+    .insert({
+      instagram_handle: handle,
+      experience,
+      prize: prize ?? null,
+      won_drink: wonDrink,
+    })
+    .then(({ error }) => {
+      if (error) console.error("No se pudo guardar la entrada", error);
+    });
+}
+
 function StepExperience({ handle }: { handle: string }) {
   const [mode, setMode] = useState<"choose" | "drink" | "vip">("choose");
 
-  const save = (experience: string, prize?: string) => {
-    supabase
-      .from("atena_entries")
-      .insert({ instagram_handle: handle, experience, prize: prize ?? null })
-      .then(({ error }) => {
-        if (error) console.error("No se pudo guardar la entrada", error);
-      });
-
-  };
-
-  if (mode === "drink") return <DrinkGame handle={handle} onBack={() => setMode("choose")} onWin={save} />;
+  if (mode === "drink") return <DrinkGame handle={handle} onBack={() => setMode("choose")} />;
   if (mode === "vip") return <VipCard onBack={() => setMode("choose")} />;
 
   return (
@@ -204,7 +218,7 @@ function StepExperience({ handle }: { handle: string }) {
           title="Participar por una Mesa VIP"
           caption="Subí tu historia y competí"
           onClick={() => {
-            save("mesa_vip");
+            saveEntry(handle, "mesa_vip", false);
             setMode("vip");
           }}
         />
@@ -238,39 +252,46 @@ function ExperienceCard({
   );
 }
 
-function DrinkGame({
-  handle,
-  onBack,
-  onWin,
-}: {
-  handle: string;
-  onBack: () => void;
-  onWin: (experience: string, prize: string) => void;
-}) {
+function pick(list: number[]): number {
+  return list[Math.floor(Math.random() * list.length)]!;
+}
+
+function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [prize, setPrize] = useState<Prize | null>(null);
+  const [result, setResult] = useState<"win" | "lose" | null>(null);
 
-  const segment = 360 / PRIZES.length;
+  const segment = 360 / SEGMENTS.length;
 
-  const spin = () => {
-    if (spinning) return;
+  const spin = async () => {
+    if (spinning || result) return;
     setSpinning(true);
-    const index = Math.floor(Math.random() * PRIZES.length);
+
+    let won = false;
+    try {
+      const { data, error } = await supabase.rpc("claim_drink");
+      if (error) throw error;
+      won = data === true;
+    } catch (err) {
+      console.error("No se pudo consultar el cupo de tragos", err);
+      won = false;
+    }
+
+    const index = won ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
     const target = 360 * 6 + (360 - index * segment - segment / 2);
     setAngle((prev) => prev + target);
+
     window.setTimeout(() => {
       setSpinning(false);
-      const won = PRIZES[index]!;
-      setPrize(won);
-      onWin("trago", won.title);
+      setResult(won ? "win" : "lose");
+      saveEntry(handle, "trago", won, won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩");
     }, 4200);
   };
 
   return (
     <section className="rise flex w-full flex-col items-center">
       <Title>LA RUEDA DE ATENA</Title>
-      <Subtitle>Un solo giro. El destino elige tu trago.</Subtitle>
+      <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
       <div className="relative mt-12 flex h-64 w-64 items-center justify-center">
         <div className="absolute -top-2 z-10 h-0 w-0 border-x-8 border-t-[14px] border-x-transparent border-t-[color:var(--gold)]" />
@@ -279,20 +300,20 @@ function DrinkGame({
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
-            background: `conic-gradient(${PRIZES.map((_, i) => {
-              const c = i % 2 === 0 ? "oklch(0.22 0.02 82)" : "oklch(0.35 0.05 80)";
+            background: `conic-gradient(${SEGMENTS.map((s, i) => {
+              const c = s.win ? "oklch(0.35 0.05 80)" : "oklch(0.18 0.015 82)";
               return `${c} ${i * segment}deg ${(i + 1) * segment}deg`;
             }).join(", ")})`,
           }}
         >
-          {PRIZES.map((p, i) => (
+          {SEGMENTS.map((s, i) => (
             <div
-              key={p.title}
+              key={`${s.label}-${i}`}
               className="absolute left-1/2 top-1/2 origin-left"
               style={{ transform: `rotate(${i * segment + segment / 2}deg)` }}
             >
-              <span className="ml-6 block w-24 text-[0.5rem] uppercase tracking-[0.12em] text-gold">
-                {p.title}
+              <span className="ml-5 block w-24 text-[0.5rem] uppercase leading-tight tracking-[0.1em] text-gold">
+                {s.label}
               </span>
             </div>
           ))}
@@ -301,51 +322,53 @@ function DrinkGame({
       </div>
 
       <div className="mt-12 flex w-full flex-col gap-3">
-        <GoldButton onClick={spin} disabled={spinning || !!prize}>
-          {spinning ? "Girando..." : prize ? "Ya jugaste" : "Girar la rueda"}
+        <GoldButton onClick={spin} disabled={spinning || !!result}>
+          {spinning ? "Girando..." : result ? "Ya jugaste" : "Girar la rueda"}
         </GoldButton>
         <GoldButton variant="outline" onClick={onBack}>
           Volver
         </GoldButton>
       </div>
 
-      {prize && <Voucher prize={prize} handle={handle} onClose={() => onBack()} />}
+      {result && <ResultCard result={result} handle={handle} onClose={onBack} />}
     </section>
   );
 }
 
-function Voucher({
-  prize,
+function ResultCard({
+  result,
   handle,
   onClose,
 }: {
-  prize: Prize;
+  result: "win" | "lose";
   handle: string;
   onClose: () => void;
 }) {
+  const won = result === "win";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 px-6 backdrop-blur-sm">
       <div className="panel rise w-full max-w-sm rounded-sm px-7 py-10 text-center">
         <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">
-          Voucher digital
+          {won ? "Voucher digital" : "Resultado"}
         </p>
         <div className="mx-auto mt-5 w-16 gold-line" />
         <h2 className="mt-6 font-display text-xl uppercase tracking-[0.14em] text-gold-gradient">
-          ¡Ganaste!
+          {won ? "¡Ganaste!" : "Esta vez no"}
         </h2>
-        <p className="mt-4 font-display text-2xl tracking-[0.1em] text-gold">{prize.title}</p>
-        <p className="mt-4 text-sm font-light text-muted-foreground">{prize.detail}</p>
+        <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
+          {won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩"}
+        </p>
+        <p className="mt-4 text-sm font-light text-muted-foreground">
+          {won
+            ? "Mostrá esta pantalla en la barra y retirá tu trago."
+            : "No te quedaste con un trago, pero la noche recién empieza. ¡Nos vemos en la pista!"}
+        </p>
         <div className="mx-auto mt-7 w-full border border-dashed border-gold/40 px-4 py-3">
-          <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">
-            @{handle}
-          </p>
+          <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">@{handle}</p>
           <p className="mt-1 text-[0.6rem] uppercase tracking-[0.2em] text-gold">
             {new Date().toLocaleString("es-AR")}
           </p>
         </div>
-        <p className="mt-5 text-[0.6rem] uppercase tracking-[0.25em] text-muted-foreground">
-          Mostrá esta pantalla en la barra
-        </p>
         <div className="mt-8">
           <GoldButton variant="outline" onClick={onClose}>
             Cerrar
@@ -357,25 +380,43 @@ function Voucher({
 }
 
 function VipCard({ onBack }: { onBack: () => void }) {
+  const steps = [
+    "Sacá tu mejor foto esta noche 📸",
+    "Subila a tu Historia de Instagram",
+    `Etiquetá a ${INSTAGRAM_HANDLE}`,
+  ];
+
   return (
     <section className="rise flex w-full flex-col items-center">
       <Title>MESA VIP</Title>
-      <div className="panel mt-8 w-full rounded-sm px-7 py-8 text-center">
-        <div className="text-3xl">📸</div>
-        <p className="mt-5 text-sm font-light leading-relaxed text-muted-foreground">
-          Sacá tu mejor foto esta noche 📸, subila a tu historia de Instagram etiquetando a{" "}
-          <span className="text-gold">@atena.house</span> y participá por una Mesa VIP para 4
-          personas en la próxima edición.
+      <div className="panel mt-8 w-full rounded-sm px-7 py-8">
+        <ol className="flex flex-col gap-5">
+          {steps.map((text, i) => (
+            <li key={text} className="flex items-start gap-4">
+              <span className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gold/50 font-display text-xs text-gold">
+                {i + 1}
+              </span>
+              <p className="text-sm font-light leading-relaxed text-foreground">{text}</p>
+            </li>
+          ))}
+        </ol>
+        <div className="mx-auto mt-7 w-full gold-line" />
+        <p className="mt-5 text-center text-xs font-light leading-relaxed text-muted-foreground">
+          ¡Al haber ingresado tu @ en el paso anterior, al etiquetarnos ingresás automáticamente al
+          sorteo!
         </p>
       </div>
-      <div className="mt-8 flex w-full flex-col gap-3">
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="block">
-          <GoldButton>Abrir Instagram para subir story</GoldButton>
+      <div className="mt-8 w-full">
+        <a href={INSTAGRAM_OPEN_URL} target="_blank" rel="noopener noreferrer" className="block">
+          <GoldButton>Abrir Instagram</GoldButton>
         </a>
-        <GoldButton variant="outline" onClick={onBack}>
-          Volver
-        </GoldButton>
       </div>
+      <button
+        onClick={onBack}
+        className="mt-6 text-[0.6rem] uppercase tracking-[0.35em] text-muted-foreground transition-colors hover:text-gold"
+      >
+        Volver
+      </button>
     </section>
   );
 }
