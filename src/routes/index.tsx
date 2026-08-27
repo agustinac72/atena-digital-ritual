@@ -265,18 +265,27 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
     if (spinning || result) return;
     setSpinning(true);
 
-    let won = false;
-    try {
-      const { data, error } = await supabase.rpc("claim_drink");
-      if (error) throw error;
-      won = data === true;
-    } catch (err) {
-      console.error("No se pudo consultar el cupo de tragos", err);
-      won = false;
+    // Azar real: se sortea primero el casillero entre los 6 disponibles.
+    let index = Math.floor(Math.random() * SEGMENTS.length);
+    let won = SEGMENTS[index]!.win;
+
+    // Si salió premio, se valida el cupo global de tragos en la nube.
+    if (won) {
+      try {
+        const { data, error } = await supabase.rpc("claim_drink");
+        if (error) throw error;
+        won = data === true;
+      } catch (err) {
+        console.error("No se pudo consultar el cupo de tragos", err);
+        won = false;
+      }
+      // Cupo agotado: la aguja cae en un casillero sin premio.
+      if (!won) index = pick(LOSE_INDEXES);
     }
 
-    const index = won ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
-    const target = 360 * 6 + (360 - index * segment - segment / 2);
+    const jitter = (Math.random() - 0.5) * (segment * 0.6);
+    const extraTurns = 5 + Math.floor(Math.random() * 4);
+    const target = 360 * extraTurns + (360 - index * segment - segment / 2) + jitter;
     setAngle((prev) => prev + target);
 
     window.setTimeout(() => {
