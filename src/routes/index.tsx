@@ -283,11 +283,17 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<"win" | "lose" | null>(null);
+  const [played, setPlayed] = useState<PlayedRecord | null>(null);
 
   const segment = 360 / SEGMENTS.length;
 
+  // Al entrar o recargar, verificamos si este dispositivo ya giró la ruleta.
+  useEffect(() => {
+    setPlayed(getPlayedRecord());
+  }, []);
+
   const spin = async () => {
-    if (spinning || result) return;
+    if (spinning || result || played) return;
     setSpinning(true);
 
     // Azar real: se sortea primero el casillero entre los 6 disponibles.
@@ -313,10 +319,13 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
     const target = 360 * extraTurns + (360 - index * segment - segment / 2) + jitter;
     setAngle((prev) => prev + target);
 
+    const prize = won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩";
     window.setTimeout(() => {
       setSpinning(false);
       setResult(won ? "win" : "lose");
-      saveEntry(handle, "trago", won, won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩");
+      setPlayedRecord(won ? "win" : "lose", prize);
+      setPlayed({ result: won ? "win" : "lose", prize });
+      saveEntry(handle, "trago", won, prize);
     }, 4200);
   };
 
@@ -354,14 +363,16 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
       </div>
 
       <div className="mt-12 flex w-full flex-col gap-3">
-        <GoldButton onClick={spin} disabled={spinning || !!result}>
-          {spinning ? "Girando..." : result ? "Ya jugaste" : "Girar la rueda"}
+        <GoldButton onClick={spin} disabled={spinning || !!result || !!played}>
+          {spinning ? "Girando..." : result || played ? "Ya jugaste" : "Girar la rueda"}
         </GoldButton>
         <GoldButton variant="outline" onClick={onBack}>
           Volver
         </GoldButton>
       </div>
 
+      {result && !played?.result ? null : null}
+      {played && !result ? <PlayedCard played={played} onClose={onBack} /> : null}
       {result && <ResultCard result={result} handle={handle} onClose={onBack} />}
     </section>
   );
