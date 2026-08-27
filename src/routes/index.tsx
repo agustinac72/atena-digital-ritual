@@ -6,13 +6,10 @@ import {
   INSTAGRAM_OPEN_URL,
   INSTAGRAM_HANDLE,
   SEGMENTS,
-  WIN_INDEXES,
   LOSE_INDEXES,
   normalizeHandle,
 } from "@/lib/atena";
-import logoAsset from "@/assets/atena-logo-official.png.asset.json";
-
-const logo = logoAsset.url;
+const logo = "/atena-logo-official.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -267,18 +264,27 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
     if (spinning || result) return;
     setSpinning(true);
 
-    let won = false;
-    try {
-      const { data, error } = await supabase.rpc("claim_drink");
-      if (error) throw error;
-      won = data === true;
-    } catch (err) {
-      console.error("No se pudo consultar el cupo de tragos", err);
-      won = false;
+    // Azar real: se sortea primero el casillero entre los 6 disponibles.
+    let index = Math.floor(Math.random() * SEGMENTS.length);
+    let won = SEGMENTS[index]!.win;
+
+    // Si salió premio, se valida el cupo global de tragos en la nube.
+    if (won) {
+      try {
+        const { data, error } = await supabase.rpc("claim_drink");
+        if (error) throw error;
+        won = data === true;
+      } catch (err) {
+        console.error("No se pudo consultar el cupo de tragos", err);
+        won = false;
+      }
+      // Cupo agotado: la aguja cae en un casillero sin premio.
+      if (!won) index = pick(LOSE_INDEXES);
     }
 
-    const index = won ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
-    const target = 360 * 6 + (360 - index * segment - segment / 2);
+    const jitter = (Math.random() - 0.5) * (segment * 0.6);
+    const extraTurns = 5 + Math.floor(Math.random() * 4);
+    const target = 360 * extraTurns + (360 - index * segment - segment / 2) + jitter;
     setAngle((prev) => prev + target);
 
     window.setTimeout(() => {
@@ -293,10 +299,10 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-12 flex h-64 w-64 items-center justify-center">
+      <div className="relative mt-12 flex h-[19rem] w-[19rem] max-w-[92vw] items-center justify-center">
         <div className="absolute -top-2 z-10 h-0 w-0 border-x-8 border-t-[14px] border-x-transparent border-t-[color:var(--gold)]" />
         <div
-          className="h-64 w-64 rounded-full border border-gold/40 shadow-[0_0_60px_-20px_rgba(234,211,146,0.7)]"
+          className="h-full w-full rounded-full border border-gold/40 shadow-[0_0_60px_-20px_rgba(234,211,146,0.7)]"
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
@@ -312,7 +318,7 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
               className="absolute left-1/2 top-1/2 origin-left"
               style={{ transform: `rotate(${i * segment + segment / 2}deg)` }}
             >
-              <span className="ml-5 block w-24 text-[0.5rem] uppercase leading-tight tracking-[0.1em] text-gold">
+              <span className="ml-6 block w-[6.5rem] text-[0.72rem] font-semibold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 {s.label}
               </span>
             </div>
@@ -402,8 +408,7 @@ function VipCard({ onBack }: { onBack: () => void }) {
         </ol>
         <div className="mx-auto mt-7 w-full gold-line" />
         <p className="mt-5 text-center text-xs font-light leading-relaxed text-muted-foreground">
-          ¡Al haber ingresado tu @ en el paso anterior, al etiquetarnos ingresás automáticamente al
-          sorteo!
+          Al etiquetarnos ingresás automáticamente al sorteo
         </p>
       </div>
       <div className="mt-8 w-full">
