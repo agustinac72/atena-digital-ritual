@@ -10,9 +10,7 @@ import {
   LOSE_INDEXES,
   normalizeHandle,
 } from "@/lib/atena";
-import logoAsset from "@/assets/atena-logo-official.png.asset.json";
-
-const logo = logoAsset.url;
+const logo = "/atena-logo-official.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
