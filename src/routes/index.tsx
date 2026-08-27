@@ -319,7 +319,7 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
               className="absolute left-1/2 top-1/2 origin-left"
               style={{ transform: `rotate(${i * segment + segment / 2}deg)` }}
             >
-              <span className="ml-5 block w-24 text-[0.5rem] uppercase leading-tight tracking-[0.1em] text-gold">
+              <span className="ml-6 block w-[6.5rem] text-[0.72rem] font-semibold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
                 {s.label}
               </span>
             </div>
