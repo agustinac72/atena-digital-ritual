@@ -409,8 +409,7 @@ function VipCard({ onBack }: { onBack: () => void }) {
         </ol>
         <div className="mx-auto mt-7 w-full gold-line" />
         <p className="mt-5 text-center text-xs font-light leading-relaxed text-muted-foreground">
-          ¡Al haber ingresado tu @ en el paso anterior, al etiquetarnos ingresás automáticamente al
-          sorteo!
+          Al etiquetarnos ingresás automáticamente al sorteo
         </p>
       </div>
       <div className="mt-8 w-full">
