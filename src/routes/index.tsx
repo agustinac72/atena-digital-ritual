@@ -377,6 +377,35 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
   );
 }
 
+function PlayedCard({ played, onClose }: { played: PlayedRecord; onClose: () => void }) {
+  const won = played.result === "win";
+  return (
+    <div className="panel rise mt-2 w-full max-w-sm rounded-sm px-7 py-9 text-center">
+      <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">Juego finalizado</p>
+      <div className="mx-auto mt-5 w-16 gold-line" />
+      <h2 className="mt-6 font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
+        ¡Ya participaste del juego!
+      </h2>
+      <p className="mt-4 text-sm font-light leading-relaxed text-muted-foreground">
+        Tu premio/resultado registrado fue:
+      </p>
+      <p className="mt-3 font-display text-lg leading-tight tracking-[0.08em] text-gold">
+        {played.prize}
+      </p>
+      <p className="mt-5 text-xs font-light leading-relaxed text-muted-foreground">
+        {won
+          ? "Mostrá esta pantalla en la barra y retirá tu trago."
+          : "La noche recién empieza. ¡Nos vemos en la pista!"}
+      </p>
+      <div className="mt-8">
+        <GoldButton variant="outline" onClick={onClose}>
+          Volver
+        </GoldButton>
+      </div>
+    </div>
+  );
+}
+
 function ResultCard({
   result,
   handle,
