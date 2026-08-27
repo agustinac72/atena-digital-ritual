@@ -371,7 +371,6 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
         </GoldButton>
       </div>
 
-      {result && !played?.result ? null : null}
       {played && !result ? <PlayedCard played={played} onClose={onBack} /> : null}
       {result && <ResultCard result={result} handle={handle} onClose={onBack} />}
     </section>
