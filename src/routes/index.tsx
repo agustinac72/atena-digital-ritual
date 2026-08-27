@@ -6,7 +6,6 @@ import {
   INSTAGRAM_OPEN_URL,
   INSTAGRAM_HANDLE,
   SEGMENTS,
-  WIN_INDEXES,
   LOSE_INDEXES,
   normalizeHandle,
 } from "@/lib/atena";
