@@ -193,6 +193,32 @@ function saveEntry(handle: string, experience: string, wonDrink: boolean, prize?
     });
 }
 
+type PlayedRecord = { result: "win" | "lose"; prize: string };
+const PLAYED_KEY = "atena_house_played";
+
+function getPlayedRecord(): PlayedRecord | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PLAYED_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PlayedRecord;
+    if (parsed && (parsed.result === "win" || parsed.result === "lose") && parsed.prize) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setPlayedRecord(result: "win" | "lose", prize: string) {
+  try {
+    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ result, prize }));
+  } catch {
+    /* localStorage no disponible */
+  }
+}
+
 function StepExperience({ handle }: { handle: string }) {
   const [mode, setMode] = useState<"choose" | "drink" | "vip">("choose");
 
