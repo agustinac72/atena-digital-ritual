@@ -300,10 +300,10 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-12 flex h-64 w-64 items-center justify-center">
+      <div className="relative mt-12 flex h-[19rem] w-[19rem] max-w-[92vw] items-center justify-center">
         <div className="absolute -top-2 z-10 h-0 w-0 border-x-8 border-t-[14px] border-x-transparent border-t-[color:var(--gold)]" />
         <div
-          className="h-64 w-64 rounded-full border border-gold/40 shadow-[0_0_60px_-20px_rgba(234,211,146,0.7)]"
+          className="h-full w-full rounded-full border border-gold/40 shadow-[0_0_60px_-20px_rgba(234,211,146,0.7)]"
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
