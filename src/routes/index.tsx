@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   INSTAGRAM_URL,
@@ -193,6 +193,32 @@ function saveEntry(handle: string, experience: string, wonDrink: boolean, prize?
     });
 }
 
+type PlayedRecord = { result: "win" | "lose"; prize: string };
+const PLAYED_KEY = "atena_house_played";
+
+function getPlayedRecord(): PlayedRecord | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PLAYED_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PlayedRecord;
+    if (parsed && (parsed.result === "win" || parsed.result === "lose") && parsed.prize) {
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setPlayedRecord(result: "win" | "lose", prize: string) {
+  try {
+    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ result, prize }));
+  } catch {
+    /* localStorage no disponible */
+  }
+}
+
 function StepExperience({ handle }: { handle: string }) {
   const [mode, setMode] = useState<"choose" | "drink" | "vip">("choose");
 
@@ -257,11 +283,17 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<"win" | "lose" | null>(null);
+  const [played, setPlayed] = useState<PlayedRecord | null>(null);
 
   const segment = 360 / SEGMENTS.length;
 
+  // Al entrar o recargar, verificamos si este dispositivo ya giró la ruleta.
+  useEffect(() => {
+    setPlayed(getPlayedRecord());
+  }, []);
+
   const spin = async () => {
-    if (spinning || result) return;
+    if (spinning || result || played) return;
     setSpinning(true);
 
     // Azar real: se sortea primero el casillero entre los 6 disponibles.
@@ -287,10 +319,13 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
     const target = 360 * extraTurns + (360 - index * segment - segment / 2) + jitter;
     setAngle((prev) => prev + target);
 
+    const prize = won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩";
     window.setTimeout(() => {
       setSpinning(false);
       setResult(won ? "win" : "lose");
-      saveEntry(handle, "trago", won, won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩");
+      setPlayedRecord(won ? "win" : "lose", prize);
+      setPlayed({ result: won ? "win" : "lose", prize });
+      saveEntry(handle, "trago", won, prize);
     }, 4200);
   };
 
@@ -328,16 +363,46 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
       </div>
 
       <div className="mt-12 flex w-full flex-col gap-3">
-        <GoldButton onClick={spin} disabled={spinning || !!result}>
-          {spinning ? "Girando..." : result ? "Ya jugaste" : "Girar la rueda"}
+        <GoldButton onClick={spin} disabled={spinning || !!result || !!played}>
+          {spinning ? "Girando..." : result || played ? "Ya jugaste" : "Girar la rueda"}
         </GoldButton>
         <GoldButton variant="outline" onClick={onBack}>
           Volver
         </GoldButton>
       </div>
 
+      {played && !result ? <PlayedCard played={played} onClose={onBack} /> : null}
       {result && <ResultCard result={result} handle={handle} onClose={onBack} />}
     </section>
+  );
+}
+
+function PlayedCard({ played, onClose }: { played: PlayedRecord; onClose: () => void }) {
+  const won = played.result === "win";
+  return (
+    <div className="panel rise mt-2 w-full max-w-sm rounded-sm px-7 py-9 text-center">
+      <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">Juego finalizado</p>
+      <div className="mx-auto mt-5 w-16 gold-line" />
+      <h2 className="mt-6 font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
+        ¡Ya participaste del juego!
+      </h2>
+      <p className="mt-4 text-sm font-light leading-relaxed text-muted-foreground">
+        Tu premio/resultado registrado fue:
+      </p>
+      <p className="mt-3 font-display text-lg leading-tight tracking-[0.08em] text-gold">
+        {played.prize}
+      </p>
+      <p className="mt-5 text-xs font-light leading-relaxed text-muted-foreground">
+        {won
+          ? "Mostrá esta pantalla en la barra y retirá tu trago."
+          : "La noche recién empieza. ¡Nos vemos en la pista!"}
+      </p>
+      <div className="mt-8">
+        <GoldButton variant="outline" onClick={onClose}>
+          Volver
+        </GoldButton>
+      </div>
+    </div>
   );
 }
 
