@@ -221,17 +221,25 @@ function WheelScreen({
             }).join(", ")})`,
           }}
         >
-          {SEGMENTS.map((s, i) => (
-            <div
-              key={`${s.label}-${i}`}
-              className="absolute left-1/2 top-1/2 origin-left"
-              style={{ transform: `rotate(${i * segment + segment / 2 - 90}deg)` }}
-            >
-              <span className="ml-7 block w-[7.5rem] text-[0.95rem] font-bold uppercase leading-[1.1] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]">
-                {s.label}
-              </span>
-            </div>
-          ))}
+          {SEGMENTS.map((s, i) => {
+            const a = i * segment + segment / 2;
+            const flip = a > 180 ? 180 : 0;
+            return (
+              <div
+                key={`${s.label}-${i}`}
+                className="absolute left-1/2 top-1/2 h-0 w-0"
+                style={{ transform: `rotate(${a}deg) translateY(-34%)` }}
+              >
+                <span
+                  className="block w-[7rem] -translate-x-1/2 -translate-y-1/2 text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+                  style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
+                >
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
+
         </div>
         <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background" />
       </div>
