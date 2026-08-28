@@ -227,16 +227,17 @@ function WheelScreen({
             return (
               <div
                 key={`${s.label}-${i}`}
-                className="absolute left-1/2 top-1/2 h-0 w-0"
-                style={{ transform: `rotate(${a}deg) translateY(-34%)` }}
+                className="absolute bottom-1/2 left-1/2 h-1/2 w-0 origin-bottom"
+                style={{ transform: `rotate(${a}deg)` }}
               >
                 <span
-                  className="block w-[7rem] -translate-x-1/2 -translate-y-1/2 text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
                   style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
                 >
                   {s.label}
                 </span>
               </div>
+
             );
           })}
 
