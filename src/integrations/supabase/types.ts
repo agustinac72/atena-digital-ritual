@@ -68,6 +68,7 @@ export type Database = {
     }
     Functions: {
       claim_drink: { Args: never; Returns: boolean }
+      reset_roulette: { Args: { p_code: string }; Returns: number }
     }
     Enums: {
       [_ in never]: never

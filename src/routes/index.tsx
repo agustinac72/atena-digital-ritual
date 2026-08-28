@@ -1,94 +1,87 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  INSTAGRAM_URL,
-  INSTAGRAM_OPEN_URL,
-  INSTAGRAM_HANDLE,
-  SEGMENTS,
-  LOSE_INDEXES,
-  normalizeHandle,
-} from "@/lib/atena";
+import { SEGMENTS, LOSE_INDEXES, PRIZE_LABEL, NO_PRIZE_LABEL } from "@/lib/atena";
+
 const logo = "/atena-logo-official.png";
+const MAX_DRINKS = 50;
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "ATENA HOUSE — Universo Atena" },
+      { title: "ATENA HOUSE — La Rueda de Atena" },
       {
         name: "description",
         content:
-          "Desbloqueá la experiencia ATENA HOUSE: jugá por un trago o participá por una Mesa VIP.",
+          "Girá la Rueda de Atena en el evento y descubrí si ganás un trago. Experiencia interactiva de ATENA HOUSE.",
       },
-      { property: "og:title", content: "ATENA HOUSE — Universo Atena" },
+      { property: "og:title", content: "ATENA HOUSE — La Rueda de Atena" },
       {
         property: "og:description",
         content:
-          "Desbloqueá la experiencia ATENA HOUSE: jugá por un trago o participá por una Mesa VIP.",
+          "Girá la Rueda de Atena en el evento y descubrí si ganás un trago. Experiencia interactiva de ATENA HOUSE.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AtenaApp,
 });
 
-type Step = 1 | 2 | 3;
+type Screen = "welcome" | "wheel";
 
 function AtenaApp() {
-  const [step, setStep] = useState<Step>(1);
-  const [handle, setHandle] = useState("");
+  const [screen, setScreen] = useState<Screen>("welcome");
+  const [given, setGiven] = useState(0);
+
+  const refreshCounter = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("prizes_counter")
+      .select("total_drinks_given")
+      .eq("id", 1)
+      .maybeSingle();
+    if (!error && data) setGiven(data.total_drinks_given ?? 0);
+  }, []);
+
+  useEffect(() => {
+    void refreshCounter();
+  }, [refreshCounter]);
 
   return (
-    <main className="ritual-bg relative flex min-h-screen flex-col items-center overflow-hidden px-6 pb-16 pt-12">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-24 pt-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
-      <div className="flex w-full max-w-md flex-1 flex-col items-center">
-        <Header step={step} />
-        {step === 1 && <StepWelcome onNext={() => setStep(2)} />}
-        {step === 2 && (
-          <StepHandle
-            onNext={(value) => {
-              setHandle(value);
-              setStep(3);
-            }}
+      <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
+        <Logo />
+        {screen === "welcome" ? (
+          <WelcomeScreen onStart={() => setScreen("wheel")} />
+        ) : (
+          <WheelScreen
+            given={given}
+            setGiven={setGiven}
+            onNextParticipant={() => setScreen("welcome")}
           />
         )}
-        {step === 3 && <StepExperience handle={handle} />}
       </div>
-      <footer className="mt-12 text-center text-[0.6rem] uppercase tracking-[0.35em] text-gold/50">
-        Powered by Atena House
-      </footer>
+      <OperatorBar given={given} onReset={refreshCounter} />
     </main>
   );
 }
 
-function Header({ step }: { step: Step }) {
+function Logo() {
   return (
-    <div className="flex w-full flex-col items-center">
-      <div className="h-40 w-[80%] overflow-hidden">
-        <img
-          src={logo}
-          alt="Logo oficial de ATENA HOUSE"
-          width={900}
-          height={490}
-          className="h-full w-full scale-[1.35] object-cover"
-        />
-      </div>
-      <div className="mt-6 flex items-center gap-2">
-        {[1, 2, 3].map((n) => (
-          <span
-            key={n}
-            className={`h-[2px] w-8 transition-colors duration-500 ${
-              n <= step ? "bg-gold" : "bg-border"
-            }`}
-          />
-        ))}
-      </div>
-    </div>
+    <img
+      src={logo}
+      alt="Logo oficial de ATENA HOUSE"
+      width={900}
+      height={490}
+      className="mx-auto w-[78%] max-w-[26rem] object-contain mix-blend-screen"
+    />
   );
 }
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="mt-10 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient">
+    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient sm:text-3xl">
       {children}
     </h1>
   );
@@ -96,7 +89,7 @@ function Title({ children }: { children: React.ReactNode }) {
 
 function Subtitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 max-w-xs text-center text-sm font-light leading-relaxed text-muted-foreground">
+    <p className="mt-4 max-w-md text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
       {children}
     </p>
   );
@@ -116,7 +109,7 @@ function GoldButton({
   type?: "button" | "submit";
 }) {
   const base =
-    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40";
+    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40 sm:text-sm";
   const styles =
     variant === "solid"
       ? "bg-gold text-primary-foreground hover:bg-gold-deep hover:shadow-[0_0_30px_-8px_rgba(234,211,146,0.6)]"
@@ -128,64 +121,25 @@ function GoldButton({
   );
 }
 
-function StepWelcome({ onNext }: { onNext: () => void }) {
+function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <section className="rise flex w-full flex-col items-center">
+    <section className="rise flex w-full max-w-md flex-col items-center">
       <Title>BIENVENIDO AL UNIVERSO ATENA</Title>
-      <Subtitle>Seguinos en Instagram para desbloquear la experiencia de esta noche.</Subtitle>
-      <div className="mt-10 flex w-full flex-col gap-3">
-        <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="block">
-          <GoldButton>Seguir a {INSTAGRAM_HANDLE}</GoldButton>
-        </a>
-        <GoldButton variant="outline" onClick={onNext}>
-          Ya sigo a Atena
-        </GoldButton>
+      <Subtitle>Dejá que la sabiduría de Atena guíe tu suerte.</Subtitle>
+      <div className="mt-10 w-full">
+        <GoldButton onClick={onStart}>Revela tu destino</GoldButton>
       </div>
     </section>
   );
 }
 
-function StepHandle({ onNext }: { onNext: (handle: string) => void }) {
-  const [value, setValue] = useState("");
-  const clean = normalizeHandle(value);
-
-  return (
-    <section className="rise flex w-full flex-col items-center">
-      <Title>INGRESA TU USUARIO</Title>
-      <Subtitle>Dejanos tu @ de Instagram para continuar.</Subtitle>
-      <form
-        className="mt-10 flex w-full flex-col gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (clean) onNext(clean);
-        }}
-      >
-        <div className="flex items-center gap-2 border-b border-input px-1 py-3 focus-within:border-gold">
-          <span className="font-display text-lg text-gold">@</span>
-          <input
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="usuario"
-            autoCapitalize="none"
-            autoCorrect="off"
-            className="w-full bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground/60"
-          />
-        </div>
-        <GoldButton type="submit" disabled={!clean}>
-          Continuar
-        </GoldButton>
-      </form>
-    </section>
-  );
-}
-
-function saveEntry(handle: string, experience: string, wonDrink: boolean, prize?: string | null) {
+function saveEntry(wonDrink: boolean) {
   supabase
     .from("atena_entries")
     .insert({
-      instagram_handle: handle,
-      experience,
-      prize: prize ?? null,
+      instagram_handle: "operador-tablet",
+      experience: "trago",
+      prize: wonDrink ? PRIZE_LABEL : NO_PRIZE_LABEL,
       won_drink: wonDrink,
     })
     .then(({ error }) => {
@@ -193,114 +147,34 @@ function saveEntry(handle: string, experience: string, wonDrink: boolean, prize?
     });
 }
 
-type PlayedRecord = { result: "win" | "lose"; prize: string };
-const PLAYED_KEY = "atena_house_played";
-
-function getPlayedRecord(): PlayedRecord | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(PLAYED_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as PlayedRecord;
-    if (parsed && (parsed.result === "win" || parsed.result === "lose") && parsed.prize) {
-      return parsed;
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function setPlayedRecord(result: "win" | "lose", prize: string) {
-  try {
-    window.localStorage.setItem(PLAYED_KEY, JSON.stringify({ result, prize }));
-  } catch {
-    /* localStorage no disponible */
-  }
-}
-
-function StepExperience({ handle }: { handle: string }) {
-  const [mode, setMode] = useState<"choose" | "drink" | "vip">("choose");
-
-  if (mode === "drink") return <DrinkGame handle={handle} onBack={() => setMode("choose")} />;
-  if (mode === "vip") return <VipCard onBack={() => setMode("choose")} />;
-
-  return (
-    <section className="rise flex w-full flex-col items-center">
-      <Title>ELEGÍ TU EXPERIENCIA</Title>
-      <Subtitle>@{handle}, tu acceso está desbloqueado.</Subtitle>
-      <div className="mt-10 flex w-full flex-col gap-4">
-        <ExperienceCard
-          emoji="🍸"
-          title="Jugar y ganar un trago"
-          caption="Girá la rueda del destino"
-          onClick={() => setMode("drink")}
-        />
-        <ExperienceCard
-          emoji="📸"
-          title="Participar por una Mesa VIP"
-          caption="Subí tu historia y competí"
-          onClick={() => {
-            saveEntry(handle, "mesa_vip", false);
-            setMode("vip");
-          }}
-        />
-      </div>
-    </section>
-  );
-}
-
-function ExperienceCard({
-  emoji,
-  title,
-  caption,
-  onClick,
-}: {
-  emoji: string;
-  title: string;
-  caption: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="panel group w-full rounded-sm px-6 py-7 text-left transition-transform duration-300 active:scale-[0.98]"
-    >
-      <div className="text-2xl">{emoji}</div>
-      <h2 className="mt-3 font-display text-base uppercase tracking-[0.18em] text-gold">{title}</h2>
-      <p className="mt-1 text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground">
-        {caption}
-      </p>
-    </button>
-  );
-}
-
 function pick(list: number[]): number {
   return list[Math.floor(Math.random() * list.length)]!;
 }
 
-function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
+function WheelScreen({
+  given,
+  setGiven,
+  onNextParticipant,
+}: {
+  given: number;
+  setGiven: (n: number) => void;
+  onNextParticipant: () => void;
+}) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<"win" | "lose" | null>(null);
-  const [played, setPlayed] = useState<PlayedRecord | null>(null);
 
   const segment = 360 / SEGMENTS.length;
 
-  // Al entrar o recargar, verificamos si este dispositivo ya giró la ruleta.
-  useEffect(() => {
-    setPlayed(getPlayedRecord());
-  }, []);
-
   const spin = async () => {
-    if (spinning || result || played) return;
+    if (spinning || result) return;
     setSpinning(true);
 
-    // Azar real: se sortea primero el casillero entre los 6 disponibles.
+    // Azar real entre los 6 casilleros.
     let index = Math.floor(Math.random() * SEGMENTS.length);
     let won = SEGMENTS[index]!.win;
 
-    // Si salió premio, se valida el cupo global de tragos en la nube.
+    // Si salió premio, se valida el cupo global de 50 tragos en la nube.
     if (won) {
       try {
         const { data, error } = await supabase.rpc("claim_drink");
@@ -310,22 +184,22 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
         console.error("No se pudo consultar el cupo de tragos", err);
         won = false;
       }
-      // Cupo agotado: la aguja cae en un casillero sin premio.
       if (!won) index = pick(LOSE_INDEXES);
+      else setGiven(Math.min(given + 1, MAX_DRINKS));
     }
 
-    const jitter = (Math.random() - 0.5) * (segment * 0.6);
+    // La aguja (arriba) queda exactamente en el centro del sector elegido.
     const extraTurns = 5 + Math.floor(Math.random() * 4);
-    const target = 360 * extraTurns + (360 - index * segment - segment / 2) + jitter;
-    setAngle((prev) => prev + target);
+    const current = angle;
+    const centerOffset = 360 - (index * segment + segment / 2);
+    const target =
+      current + 360 * extraTurns + ((centerOffset - (current % 360)) % 360);
+    setAngle(target);
 
-    const prize = won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩";
     window.setTimeout(() => {
       setSpinning(false);
       setResult(won ? "win" : "lose");
-      setPlayedRecord(won ? "win" : "lose", prize);
-      setPlayed({ result: won ? "win" : "lose", prize });
-      saveEntry(handle, "trago", won, prize);
+      saveEntry(won);
     }, 4200);
   };
 
@@ -334,90 +208,58 @@ function DrinkGame({ handle, onBack }: { handle: string; onBack: () => void }) {
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-12 flex h-[19rem] w-[19rem] max-w-[92vw] items-center justify-center">
-        <div className="absolute -top-2 z-10 h-0 w-0 border-x-8 border-t-[14px] border-x-transparent border-t-[color:var(--gold)]" />
+      <div className="relative mt-8 flex aspect-square w-[min(88vw,22rem)] items-center justify-center">
+        <div className="absolute -top-2 z-10 h-0 w-0 border-x-[10px] border-t-[18px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_8px_rgba(234,211,146,0.8)]" />
         <div
-          className="h-full w-full rounded-full border border-gold/40 shadow-[0_0_60px_-20px_rgba(234,211,146,0.7)]"
+          className="relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)]"
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
             background: `conic-gradient(${SEGMENTS.map((s, i) => {
-              const c = s.win ? "oklch(0.35 0.05 80)" : "oklch(0.18 0.015 82)";
+              const c = s.win ? "oklch(0.42 0.06 80)" : "oklch(0.15 0.012 82)";
               return `${c} ${i * segment}deg ${(i + 1) * segment}deg`;
             }).join(", ")})`,
           }}
         >
-          {SEGMENTS.map((s, i) => (
-            <div
-              key={`${s.label}-${i}`}
-              className="absolute left-1/2 top-1/2 origin-left"
-              style={{ transform: `rotate(${i * segment + segment / 2}deg)` }}
-            >
-              <span className="ml-6 block w-[6.5rem] text-[0.72rem] font-semibold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-                {s.label}
-              </span>
-            </div>
-          ))}
+          {SEGMENTS.map((s, i) => {
+            const a = i * segment + segment / 2;
+            const flip = a > 180 ? 180 : 0;
+            return (
+              <div
+                key={`${s.label}-${i}`}
+                className="absolute bottom-1/2 left-1/2 h-1/2 w-0 origin-bottom"
+                style={{ transform: `rotate(${a}deg)` }}
+              >
+                <span
+                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+                  style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
+                >
+                  {s.label}
+                </span>
+              </div>
+
+            );
+          })}
+
         </div>
-        <div className="absolute h-10 w-10 rounded-full border border-gold/60 bg-background" />
+        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background" />
       </div>
 
-      <div className="mt-12 flex w-full flex-col gap-3">
-        <GoldButton onClick={spin} disabled={spinning || !!result || !!played}>
-          {spinning ? "Girando..." : result || played ? "Ya jugaste" : "Girar la rueda"}
-        </GoldButton>
-        <GoldButton variant="outline" onClick={onBack}>
-          Volver
+      <div className="mt-10 w-full max-w-md">
+        <GoldButton onClick={spin} disabled={spinning || !!result}>
+          {spinning ? "Girando..." : "Girar"}
         </GoldButton>
       </div>
 
-      {played && !result ? <PlayedCard played={played} onClose={onBack} /> : null}
-      {result && <ResultCard result={result} handle={handle} onClose={onBack} />}
+      {result && <ResultModal result={result} onNext={onNextParticipant} />}
     </section>
   );
 }
 
-function PlayedCard({ played, onClose }: { played: PlayedRecord; onClose: () => void }) {
-  const won = played.result === "win";
-  return (
-    <div className="panel rise mt-2 w-full max-w-sm rounded-sm px-7 py-9 text-center">
-      <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">Juego finalizado</p>
-      <div className="mx-auto mt-5 w-16 gold-line" />
-      <h2 className="mt-6 font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
-        ¡Ya participaste del juego!
-      </h2>
-      <p className="mt-4 text-sm font-light leading-relaxed text-muted-foreground">
-        Tu premio/resultado registrado fue:
-      </p>
-      <p className="mt-3 font-display text-lg leading-tight tracking-[0.08em] text-gold">
-        {played.prize}
-      </p>
-      <p className="mt-5 text-xs font-light leading-relaxed text-muted-foreground">
-        {won
-          ? "Mostrá esta pantalla en la barra y retirá tu trago."
-          : "La noche recién empieza. ¡Nos vemos en la pista!"}
-      </p>
-      <div className="mt-8">
-        <GoldButton variant="outline" onClick={onClose}>
-          Volver
-        </GoldButton>
-      </div>
-    </div>
-  );
-}
-
-function ResultCard({
-  result,
-  handle,
-  onClose,
-}: {
-  result: "win" | "lose";
-  handle: string;
-  onClose: () => void;
-}) {
+function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () => void }) {
   const won = result === "win";
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 px-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
       <div className="panel rise w-full max-w-sm rounded-sm px-7 py-10 text-center">
         <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">
           {won ? "Voucher digital" : "Resultado"}
@@ -427,66 +269,99 @@ function ResultCard({
           {won ? "¡Ganaste!" : "Esta vez no"}
         </h2>
         <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
-          {won ? "GANASTE UN TRAGO 🍸" : "NOS VEMOS EN LA PISTA 🪩"}
+          {won ? PRIZE_LABEL : NO_PRIZE_LABEL}
         </p>
         <p className="mt-4 text-sm font-light text-muted-foreground">
           {won
             ? "Mostrá esta pantalla en la barra y retirá tu trago."
-            : "No te quedaste con un trago, pero la noche recién empieza. ¡Nos vemos en la pista!"}
+            : "La noche recién empieza. ¡Nos vemos en la pista!"}
         </p>
-        <div className="mx-auto mt-7 w-full border border-dashed border-gold/40 px-4 py-3">
-          <p className="text-[0.6rem] uppercase tracking-[0.3em] text-muted-foreground">@{handle}</p>
-          <p className="mt-1 text-[0.6rem] uppercase tracking-[0.2em] text-gold">
-            {new Date().toLocaleString("es-AR")}
-          </p>
-        </div>
         <div className="mt-8">
-          <GoldButton variant="outline" onClick={onClose}>
-            Cerrar
-          </GoldButton>
+          <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
         </div>
       </div>
     </div>
   );
 }
 
-function VipCard({ onBack }: { onBack: () => void }) {
-  const steps = [
-    "Sacá tu mejor foto esta noche 📸",
-    "Subila a tu Historia de Instagram",
-    `Etiquetá a ${INSTAGRAM_HANDLE}`,
-  ];
+function OperatorBar({ given, onReset }: { given: number; onReset: () => void }) {
+  const [open, setOpen] = useState(false);
+  const soldOut = given >= MAX_DRINKS;
 
   return (
-    <section className="rise flex w-full flex-col items-center">
-      <Title>MESA VIP</Title>
-      <div className="panel mt-8 w-full rounded-sm px-7 py-8">
-        <ol className="flex flex-col gap-5">
-          {steps.map((text, i) => (
-            <li key={text} className="flex items-start gap-4">
-              <span className="mt-[2px] flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-gold/50 font-display text-xs text-gold">
-                {i + 1}
-              </span>
-              <p className="text-sm font-light leading-relaxed text-foreground">{text}</p>
-            </li>
-          ))}
-        </ol>
-        <div className="mx-auto mt-7 w-full gold-line" />
-        <p className="mt-5 text-center text-xs font-light leading-relaxed text-muted-foreground">
-          Al etiquetarnos ingresás automáticamente al sorteo
+    <>
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between px-4 pb-3">
+        <button
+          onClick={() => setOpen(true)}
+          className="pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70"
+          aria-label="Reiniciar juego"
+        >
+          ⟲
+        </button>
+        <p
+          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors ${
+            soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
+          }`}
+        >
+          {soldOut
+            ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
+            : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
         </p>
+        <span className="text-[0.55rem] uppercase tracking-[0.3em] text-gold/40">
+          Powered by Atena House
+        </span>
       </div>
-      <div className="mt-8 w-full">
-        <a href={INSTAGRAM_OPEN_URL} target="_blank" rel="noopener noreferrer" className="block">
-          <GoldButton>Abrir Instagram</GoldButton>
-        </a>
+      {open && <ResetDialog onClose={() => setOpen(false)} onDone={onReset} />}
+    </>
+  );
+}
+
+function ResetDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const doReset = async () => {
+    setBusy(true);
+    setMsg(null);
+    const { error } = await supabase.rpc("reset_roulette", { p_code: code.trim() });
+    setBusy(false);
+    if (error) {
+      setMsg("Código incorrecto. No se reinició nada.");
+      return;
+    }
+    onDone();
+    setMsg("Listo: contador en 0 y datos de prueba borrados.");
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
+      <div className="panel rise w-full max-w-sm rounded-sm px-7 py-9 text-center">
+        <h2 className="font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
+          Reiniciar el juego
+        </h2>
+        <p className="mt-4 text-xs font-light leading-relaxed text-muted-foreground">
+          Esto vuelve el contador de tragos a 0 y borra los registros de prueba. Ingresá el código
+          de operador para confirmar.
+        </p>
+        <input
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="Código de operador"
+          autoCapitalize="characters"
+          autoCorrect="off"
+          className="mt-6 w-full border-b border-input bg-transparent px-1 py-3 text-center text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-gold"
+        />
+        {msg && <p className="mt-4 text-xs font-light text-gold">{msg}</p>}
+        <div className="mt-7 flex flex-col gap-3">
+          <GoldButton onClick={doReset} disabled={busy || !code.trim()}>
+            {busy ? "Reiniciando..." : "Confirmar reinicio"}
+          </GoldButton>
+          <GoldButton variant="outline" onClick={onClose}>
+            Cancelar
+          </GoldButton>
+        </div>
       </div>
-      <button
-        onClick={onBack}
-        className="mt-6 text-[0.6rem] uppercase tracking-[0.35em] text-muted-foreground transition-colors hover:text-gold"
-      >
-        Volver
-      </button>
-    </section>
+    </div>
   );
 }
