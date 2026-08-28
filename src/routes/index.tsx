@@ -74,7 +74,7 @@ function Logo() {
       alt="Logo oficial de ATENA HOUSE"
       width={900}
       height={490}
-      className="mx-auto w-[78%] max-w-[26rem] object-contain"
+      className="mx-auto w-[78%] max-w-[26rem] object-contain mix-blend-screen"
     />
   );
 }
