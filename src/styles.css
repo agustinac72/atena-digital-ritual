@@ -237,3 +237,99 @@
 @utility glow-pulse {
   animation: atena-pulse 3.2s ease-in-out infinite;
 }
+
+/* ---- Botón "Revelá tu destino" ---- */
+
+@keyframes atena-shine {
+  0% { transform: translateX(-160%) skewX(-18deg); }
+  60%, 100% { transform: translateX(280%) skewX(-18deg); }
+}
+
+@keyframes atena-btn-breathe {
+  0%, 100% { box-shadow: 0 0 26px -8px oklch(0.87 0.062 88 / 0.65), inset 0 1px 0 oklch(1 0 0 / 0.35), inset 0 -3px 6px oklch(0 0 0 / 0.28); }
+  50% { box-shadow: 0 0 44px -6px oklch(0.87 0.062 88 / 0.9), inset 0 1px 0 oklch(1 0 0 / 0.45), inset 0 -3px 6px oklch(0 0 0 / 0.28); }
+}
+
+@utility btn-destiny {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: linear-gradient(155deg, oklch(0.93 0.06 92), oklch(0.72 0.08 76) 55%, oklch(0.58 0.075 70));
+  border: 1px solid oklch(0.95 0.05 92 / 0.65);
+  color: oklch(0.14 0.02 78);
+  text-shadow: 0 1px 0 oklch(1 0 0 / 0.35);
+  animation: atena-btn-breathe 2.8s ease-in-out infinite;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.btn-destiny::after {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 38%;
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.55), transparent);
+  animation: atena-shine 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.btn-destiny:hover {
+  transform: translateY(-2px) scale(1.02);
+  filter: brightness(1.08);
+}
+
+.btn-destiny:active {
+  transform: translateY(1px) scale(0.97);
+  filter: brightness(0.94);
+}
+
+/* ---- Ruleta con vida ---- */
+
+@keyframes atena-wheel-glow {
+  0%, 100% { box-shadow: 0 0 50px -16px oklch(0.87 0.062 88 / 0.6); }
+  50% { box-shadow: 0 0 110px -10px oklch(0.87 0.062 88 / 1); }
+}
+
+@utility wheel-glow-active {
+  animation: atena-wheel-glow 0.9s ease-in-out infinite;
+}
+
+@keyframes atena-orbit {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@utility orbit-slow {
+  animation: atena-orbit 26s linear infinite;
+}
+
+@keyframes atena-sparkle {
+  0%, 100% { opacity: 0.15; transform: scale(0.55); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+@utility sparkle {
+  animation: atena-sparkle 1.6s ease-in-out infinite;
+}
+
+/* ---- Celebración de premio ---- */
+
+@keyframes atena-burst {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.3) rotate(160deg); }
+}
+
+@utility burst-particle {
+  animation: atena-burst 1.1s cubic-bezier(0.15, 0.6, 0.4, 1) forwards;
+}
+
+@keyframes atena-pop {
+  0% { transform: scale(0.7); opacity: 0; }
+  70% { transform: scale(1.06); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@utility pop-in {
+  animation: atena-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+}
