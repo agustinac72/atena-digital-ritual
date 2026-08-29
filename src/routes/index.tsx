@@ -48,7 +48,7 @@ function AtenaApp() {
   }, [refreshCounter]);
 
   return (
-    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-24 pt-8">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
       <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
         <Logo />
