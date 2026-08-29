@@ -74,7 +74,7 @@ function Logo() {
       alt="Logo oficial de ATENA HOUSE"
       width={900}
       height={490}
-      className="mx-auto w-[78%] max-w-[26rem] object-contain mix-blend-screen"
+      className="mx-auto max-h-[20vh] w-[78%] max-w-[24rem] object-contain mix-blend-screen"
     />
   );
 }
@@ -208,7 +208,7 @@ function WheelScreen({
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-8 flex aspect-square w-[min(88vw,22rem)] items-center justify-center">
+      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center">
         <div className="absolute -top-2 z-10 h-0 w-0 border-x-[10px] border-t-[18px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_8px_rgba(234,211,146,0.8)]" />
         <div
           className="relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)]"
@@ -223,7 +223,7 @@ function WheelScreen({
         >
           {SEGMENTS.map((s, i) => {
             const a = i * segment + segment / 2;
-            const flip = a > 180 ? 180 : 0;
+            const flip = a > 90 && a < 270 ? 180 : 0;
             return (
               <div
                 key={`${s.label}-${i}`}
@@ -245,7 +245,7 @@ function WheelScreen({
         <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background" />
       </div>
 
-      <div className="mt-10 w-full max-w-md">
+      <div className="mt-8 w-full max-w-md">
         <GoldButton onClick={spin} disabled={spinning || !!result}>
           {spinning ? "Girando..." : "Girar"}
         </GoldButton>
