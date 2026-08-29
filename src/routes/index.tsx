@@ -69,13 +69,15 @@ function AtenaApp() {
 
 function Logo() {
   return (
-    <img
-      src={logo}
-      alt="Logo oficial de ATENA HOUSE"
-      width={900}
-      height={490}
-      className="mx-auto max-h-[20vh] w-[78%] max-w-[24rem] object-contain mix-blend-screen"
-    />
+    <div className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] overflow-hidden">
+      <img
+        src={logo}
+        alt="Logo oficial de ATENA HOUSE"
+        width={900}
+        height={490}
+        className="h-full w-full scale-[1.18] object-contain mix-blend-screen"
+      />
+    </div>
   );
 }
 
@@ -121,13 +123,25 @@ function GoldButton({
   );
 }
 
+function DestinyButton({ onStart }: { onStart: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onStart}
+      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base"
+    >
+      Revelá tu destino
+    </button>
+  );
+}
+
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <section className="rise flex w-full max-w-md flex-col items-center">
       <Title>BIENVENIDO AL UNIVERSO ATENA</Title>
       <Subtitle>Dejá que la sabiduría de Atena guíe tu suerte.</Subtitle>
       <div className="mt-10 w-full">
-        <GoldButton onClick={onStart}>Revela tu destino</GoldButton>
+        <DestinyButton onStart={onStart} />
       </div>
     </section>
   );
@@ -209,9 +223,22 @@ function WheelScreen({
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
       <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center">
+        <div className="orbit-slow pointer-events-none absolute -inset-4 rounded-full border border-dashed border-gold/25" />
+        {[
+          "top-0 left-1/2 -translate-x-1/2",
+          "top-1/2 left-0 -translate-y-1/2",
+          "top-1/2 right-0 -translate-y-1/2",
+          "bottom-0 left-1/2 -translate-x-1/2",
+        ].map((pos, i) => (
+          <span
+            key={pos}
+            className={`sparkle pointer-events-none absolute ${pos} h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_10px_2px_rgba(234,211,146,0.7)]`}
+            style={{ animationDelay: `${i * 0.4}s` }}
+          />
+        ))}
         <div className="absolute -top-2 z-10 h-0 w-0 border-x-[10px] border-t-[18px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_8px_rgba(234,211,146,0.8)]" />
         <div
-          className="relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)]"
+          className={`relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)] ${spinning ? "wheel-glow-active" : ""}`}
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
@@ -256,11 +283,45 @@ function WheelScreen({
   );
 }
 
+const BURST_PARTICLES = Array.from({ length: 14 }, (_, i) => {
+  const angle = (i / 14) * Math.PI * 2;
+  const dist = 90 + (i % 3) * 35;
+  return {
+    dx: `${Math.cos(angle) * dist}px`,
+    dy: `${Math.sin(angle) * dist}px`,
+    delay: `${(i % 4) * 0.06}s`,
+    size: 5 + (i % 3) * 2,
+  };
+});
+
+function WinBurst() {
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {BURST_PARTICLES.map((p, i) => (
+        <span
+          key={i}
+          className="burst-particle absolute rounded-full bg-gold shadow-[0_0_8px_2px_rgba(234,211,146,0.8)]"
+          style={
+            {
+              width: p.size,
+              height: p.size,
+              "--dx": p.dx,
+              "--dy": p.dy,
+              animationDelay: p.delay,
+            } as React.CSSProperties
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
 function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () => void }) {
   const won = result === "win";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
-      <div className="panel rise w-full max-w-sm rounded-sm px-7 py-10 text-center">
+      {won && <WinBurst />}
+      <div className="panel pop-in w-full max-w-sm rounded-sm px-7 py-10 text-center">
         <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">
           {won ? "Voucher digital" : "Resultado"}
         </p>
@@ -271,11 +332,11 @@ function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () =>
         <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
           {won ? PRIZE_LABEL : NO_PRIZE_LABEL}
         </p>
-        <p className="mt-4 text-sm font-light text-muted-foreground">
-          {won
-            ? "Mostrá esta pantalla en la barra y retirá tu trago."
-            : "La noche recién empieza. ¡Nos vemos en la pista!"}
-        </p>
+        {!won && (
+          <p className="mt-4 text-sm font-light text-muted-foreground">
+            La noche recién empieza. ¡Nos vemos en la pista!
+          </p>
+        )}
         <div className="mt-8">
           <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
         </div>
