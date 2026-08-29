@@ -69,13 +69,15 @@ function AtenaApp() {
 
 function Logo() {
   return (
-    <img
-      src={logo}
-      alt="Logo oficial de ATENA HOUSE"
-      width={900}
-      height={490}
-      className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] object-contain mix-blend-screen"
-    />
+    <div className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] overflow-hidden">
+      <img
+        src={logo}
+        alt="Logo oficial de ATENA HOUSE"
+        width={900}
+        height={490}
+        className="h-full w-full scale-[1.18] object-contain mix-blend-screen"
+      />
+    </div>
   );
 }
 
