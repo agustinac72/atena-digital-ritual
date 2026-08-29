@@ -74,7 +74,7 @@ function Logo() {
       alt="Logo oficial de ATENA HOUSE"
       width={900}
       height={490}
-      className="mx-auto max-h-[20vh] w-[78%] max-w-[24rem] object-contain mix-blend-screen"
+      className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] object-contain mix-blend-screen drop-shadow-[0_0_28px_rgba(234,211,146,0.35)]"
     />
   );
 }
@@ -121,13 +121,25 @@ function GoldButton({
   );
 }
 
+function DestinyButton({ onStart }: { onStart: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onStart}
+      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base"
+    >
+      Revelá tu destino
+    </button>
+  );
+}
+
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
     <section className="rise flex w-full max-w-md flex-col items-center">
       <Title>BIENVENIDO AL UNIVERSO ATENA</Title>
       <Subtitle>Dejá que la sabiduría de Atena guíe tu suerte.</Subtitle>
       <div className="mt-10 w-full">
-        <GoldButton onClick={onStart}>Revela tu destino</GoldButton>
+        <DestinyButton onStart={onStart} />
       </div>
     </section>
   );
