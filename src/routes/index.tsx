@@ -127,7 +127,7 @@ function Logo({ compact }: { compact?: boolean }) {
         alt="Logo oficial de ATENA HOUSE"
         width={900}
         height={490}
-        className="h-full w-full scale-[1.18] object-contain mix-blend-screen"
+        className="h-full w-full scale-[1.18] object-contain mix-blend-screen [mask-image:radial-gradient(ellipse_78%_78%_at_50%_50%,black_58%,transparent_100%)]"
       />
     </div>
   );
