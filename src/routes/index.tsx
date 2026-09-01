@@ -118,7 +118,7 @@ function AmbientDust() {
 function Logo({ compact }: { compact?: boolean }) {
   return (
     <div
-      className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
+      className={`mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
         compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[30rem] md:max-w-[42rem]"
       }`}
     >
@@ -449,7 +449,7 @@ function OperatorBar({
         </button>
       </div>
       {!fullscreen && (
-        <span className="pointer-events-none fixed inset-x-0 bottom-8 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
+        <span className="pointer-events-none fixed inset-x-0 bottom-10 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
           Powered by Atena House
         </span>
       )}
