@@ -33,6 +33,7 @@ type Screen = "welcome" | "wheel";
 function AtenaApp() {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [given, setGiven] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
 
   const refreshCounter = useCallback(async () => {
     const { data, error } = await supabase
@@ -47,11 +48,25 @@ function AtenaApp() {
     void refreshCounter();
   }, [refreshCounter]);
 
+  useEffect(() => {
+    const onChange = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.documentElement.requestFullscreen?.().catch(() => setFullscreen(true));
+    setFullscreen((v) => !v);
+  }, []);
+
   return (
-    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-8">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-6 md:px-10">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
-      <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
-        <Logo />
+      <div className="club-beams" aria-hidden />
+      <AmbientDust />
+      <div className="relative flex w-full max-w-5xl flex-1 flex-col items-center justify-center">
+        <Logo compact={fullscreen && screen === "wheel"} />
         {screen === "welcome" ? (
           <WelcomeScreen onStart={() => setScreen("wheel")} />
         ) : (
@@ -62,28 +77,66 @@ function AtenaApp() {
           />
         )}
       </div>
-      <OperatorBar given={given} onReset={refreshCounter} />
+      <OperatorBar
+        given={given}
+        onReset={refreshCounter}
+        fullscreen={fullscreen}
+        onToggleFullscreen={toggleFullscreen}
+      />
     </main>
   );
 }
 
-function Logo() {
+const DUST = Array.from({ length: 18 }, (_, i) => ({
+  left: `${(i * 37) % 100}%`,
+  size: 2 + (i % 3),
+  delay: `${(i % 9) * 1.1}s`,
+  duration: `${8 + (i % 5) * 1.6}s`,
+}));
+
+function AmbientDust() {
   return (
-    <div className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {DUST.map((d, i) => (
+        <span
+          key={i}
+          className="dust-particle"
+          style={{
+            left: d.left,
+            bottom: "-10px",
+            width: d.size,
+            height: d.size,
+            animationDelay: d.delay,
+            animationDuration: d.duration,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Logo({ compact }: { compact?: boolean }) {
+  return (
+    <div
+      className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
+        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
+      }`}
+    >
       <img
         src={logo}
         alt="Logo oficial de ATENA HOUSE"
         width={900}
         height={490}
-        className="h-full w-full scale-[1.18] object-contain mix-blend-screen"
+        className="h-full w-full scale-[1.18] object-contain"
       />
     </div>
   );
 }
 
+
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient sm:text-3xl">
+    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:text-5xl">
       {children}
     </h1>
   );
@@ -91,11 +144,12 @@ function Title({ children }: { children: React.ReactNode }) {
 
 function Subtitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 max-w-md text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+    <p className="mt-4 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:text-xl">
       {children}
     </p>
   );
 }
+
 
 function GoldButton({
   children,
@@ -111,10 +165,10 @@ function GoldButton({
   type?: "button" | "submit";
 }) {
   const base =
-    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40 sm:text-sm";
+    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40 sm:text-sm md:py-6 md:text-base";
   const styles =
     variant === "solid"
-      ? "bg-gold text-primary-foreground hover:bg-gold-deep hover:shadow-[0_0_30px_-8px_rgba(234,211,146,0.6)]"
+      ? "bg-gold text-primary-foreground shadow-[0_0_30px_-12px_rgba(234,211,146,0.8)] hover:bg-gold-deep hover:shadow-[0_0_44px_-8px_rgba(234,211,146,0.8)]"
       : "border border-gold/50 text-gold hover:border-gold hover:bg-gold/10";
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles}`}>
@@ -128,7 +182,7 @@ function DestinyButton({ onStart }: { onStart: () => void }) {
     <button
       type="button"
       onClick={onStart}
-      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base"
+      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base md:py-8 md:text-2xl"
     >
       Revelá tu destino
     </button>
@@ -137,15 +191,16 @@ function DestinyButton({ onStart }: { onStart: () => void }) {
 
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <section className="rise flex w-full max-w-md flex-col items-center">
+    <section className="rise flex w-full max-w-md flex-col items-center md:max-w-2xl">
       <Title>BIENVENIDO AL UNIVERSO ATENA</Title>
       <Subtitle>Dejá que la sabiduría de Atena guíe tu suerte.</Subtitle>
-      <div className="mt-10 w-full">
+      <div className="mt-10 w-full md:mt-14">
         <DestinyButton onStart={onStart} />
       </div>
     </section>
   );
 }
+
 
 function saveEntry(wonDrink: boolean) {
   supabase
@@ -222,8 +277,9 @@ function WheelScreen({
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center">
-        <div className="orbit-slow pointer-events-none absolute -inset-4 rounded-full border border-dashed border-gold/25" />
+      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center md:w-[min(80vw,62vh,34rem)]">
+        <div className="orbit-slow pointer-events-none absolute -inset-5 rounded-full border border-dashed border-gold/25" />
+        <div className="ring-sweep pointer-events-none absolute -inset-3 rounded-full" />
         {[
           "top-0 left-1/2 -translate-x-1/2",
           "top-1/2 left-0 -translate-y-1/2",
@@ -232,13 +288,13 @@ function WheelScreen({
         ].map((pos, i) => (
           <span
             key={pos}
-            className={`sparkle pointer-events-none absolute ${pos} h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_10px_2px_rgba(234,211,146,0.7)]`}
+            className={`sparkle pointer-events-none absolute ${pos} h-2 w-2 rounded-full bg-gold shadow-[0_0_12px_3px_rgba(234,211,146,0.75)]`}
             style={{ animationDelay: `${i * 0.4}s` }}
           />
         ))}
-        <div className="absolute -top-2 z-10 h-0 w-0 border-x-[10px] border-t-[18px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_8px_rgba(234,211,146,0.8)]" />
+        <div className="absolute -top-3 z-10 h-0 w-0 border-x-[12px] border-t-[22px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_12px_rgba(234,211,146,0.9)] md:-top-4 md:border-x-[16px] md:border-t-[28px]" />
         <div
-          className={`relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)] ${spinning ? "wheel-glow-active" : ""}`}
+          className={`wheel-halo relative h-full w-full rounded-full border-2 border-gold/60 ${spinning ? "wheel-glow-active" : ""}`}
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
@@ -248,6 +304,13 @@ function WheelScreen({
             }).join(", ")})`,
           }}
         >
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle at 32% 22%, oklch(1 0 0 / 0.16), transparent 45%), radial-gradient(circle at 70% 85%, oklch(0 0 0 / 0.45), transparent 55%)",
+            }}
+          />
           {SEGMENTS.map((s, i) => {
             const a = i * segment + segment / 2;
             const flip = a > 90 && a < 270 ? 180 : 0;
@@ -258,7 +321,7 @@ function WheelScreen({
                 style={{ transform: `rotate(${a}deg)` }}
               >
                 <span
-                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[10rem] md:text-[1.25rem]"
                   style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
                 >
                   {s.label}
@@ -269,12 +332,13 @@ function WheelScreen({
           })}
 
         </div>
-        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background" />
+        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-16 md:w-16" />
       </div>
 
-      <div className="mt-8 w-full max-w-md">
+      <div className="mt-8 w-full max-w-md md:max-w-xl">
         <GoldButton onClick={spin} disabled={spinning || !!result}>
           {spinning ? "Girando..." : "Girar"}
+
         </GoldButton>
       </div>
 
@@ -345,33 +409,52 @@ function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () =>
   );
 }
 
-function OperatorBar({ given, onReset }: { given: number; onReset: () => void }) {
+function OperatorBar({
+  given,
+  onReset,
+  fullscreen,
+  onToggleFullscreen,
+}: {
+  given: number;
+  onReset: () => void;
+  fullscreen: boolean;
+  onToggleFullscreen: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const soldOut = given >= MAX_DRINKS;
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between px-4 pb-3">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3">
         <button
           onClick={() => setOpen(true)}
-          className="pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70"
+          className={`pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70 ${fullscreen ? "opacity-0" : ""}`}
           aria-label="Reiniciar juego"
         >
           ⟲
         </button>
         <p
-          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors ${
-            soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
+          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
+            fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
           }`}
         >
           {soldOut
             ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
             : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
         </p>
-        <span className="text-[0.55rem] uppercase tracking-[0.3em] text-gold/40">
+        <button
+          onClick={onToggleFullscreen}
+          className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
+        >
+          {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+        </button>
+      </div>
+      {!fullscreen && (
+        <span className="pointer-events-none fixed inset-x-0 bottom-10 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
           Powered by Atena House
         </span>
-      </div>
+      )}
+
       {open && <ResetDialog onClose={() => setOpen(false)} onDone={onReset} />}
     </>
   );
