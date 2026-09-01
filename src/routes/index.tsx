@@ -164,10 +164,10 @@ function GoldButton({
   type?: "button" | "submit";
 }) {
   const base =
-    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40 sm:text-sm";
+    "w-full rounded-sm px-6 py-4 text-xs font-semibold uppercase tracking-[0.25em] transition-all duration-300 disabled:opacity-40 sm:text-sm md:py-6 md:text-base";
   const styles =
     variant === "solid"
-      ? "bg-gold text-primary-foreground hover:bg-gold-deep hover:shadow-[0_0_30px_-8px_rgba(234,211,146,0.6)]"
+      ? "bg-gold text-primary-foreground shadow-[0_0_30px_-12px_rgba(234,211,146,0.8)] hover:bg-gold-deep hover:shadow-[0_0_44px_-8px_rgba(234,211,146,0.8)]"
       : "border border-gold/50 text-gold hover:border-gold hover:bg-gold/10";
   return (
     <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${styles}`}>
@@ -181,7 +181,7 @@ function DestinyButton({ onStart }: { onStart: () => void }) {
     <button
       type="button"
       onClick={onStart}
-      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base"
+      className="btn-destiny w-full px-8 py-5 font-display text-sm font-bold uppercase tracking-[0.32em] sm:text-base md:py-8 md:text-2xl"
     >
       Revelá tu destino
     </button>
@@ -190,15 +190,16 @@ function DestinyButton({ onStart }: { onStart: () => void }) {
 
 function WelcomeScreen({ onStart }: { onStart: () => void }) {
   return (
-    <section className="rise flex w-full max-w-md flex-col items-center">
+    <section className="rise flex w-full max-w-md flex-col items-center md:max-w-2xl">
       <Title>BIENVENIDO AL UNIVERSO ATENA</Title>
       <Subtitle>Dejá que la sabiduría de Atena guíe tu suerte.</Subtitle>
-      <div className="mt-10 w-full">
+      <div className="mt-10 w-full md:mt-14">
         <DestinyButton onStart={onStart} />
       </div>
     </section>
   );
 }
+
 
 function saveEntry(wonDrink: boolean) {
   supabase
