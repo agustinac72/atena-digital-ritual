@@ -118,8 +118,8 @@ function AmbientDust() {
 function Logo({ compact }: { compact?: boolean }) {
   return (
     <div
-      className={`mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
-        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[30rem] md:max-w-[42rem]"
+      className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
+        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
       }`}
     >
       <img
@@ -127,18 +127,12 @@ function Logo({ compact }: { compact?: boolean }) {
         alt="Logo oficial de ATENA HOUSE"
         width={900}
         height={490}
-        className="h-full w-full scale-[1.18] object-contain mix-blend-screen"
-        style={{
-          maskImage:
-            "radial-gradient(ellipse 72% 72% at 50% 50%, black 55%, transparent 100%)",
-          WebkitMaskImage:
-            "radial-gradient(ellipse 72% 72% at 50% 50%, black 55%, transparent 100%)",
-        }}
-
+        className="h-full w-full scale-[1.18] object-contain"
       />
     </div>
   );
 }
+
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
