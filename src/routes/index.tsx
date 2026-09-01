@@ -275,8 +275,9 @@ function WheelScreen({
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center">
-        <div className="orbit-slow pointer-events-none absolute -inset-4 rounded-full border border-dashed border-gold/25" />
+      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center md:w-[min(80vw,62vh,34rem)]">
+        <div className="orbit-slow pointer-events-none absolute -inset-5 rounded-full border border-dashed border-gold/25" />
+        <div className="ring-sweep pointer-events-none absolute -inset-3 rounded-full" />
         {[
           "top-0 left-1/2 -translate-x-1/2",
           "top-1/2 left-0 -translate-y-1/2",
@@ -285,13 +286,13 @@ function WheelScreen({
         ].map((pos, i) => (
           <span
             key={pos}
-            className={`sparkle pointer-events-none absolute ${pos} h-1.5 w-1.5 rounded-full bg-gold shadow-[0_0_10px_2px_rgba(234,211,146,0.7)]`}
+            className={`sparkle pointer-events-none absolute ${pos} h-2 w-2 rounded-full bg-gold shadow-[0_0_12px_3px_rgba(234,211,146,0.75)]`}
             style={{ animationDelay: `${i * 0.4}s` }}
           />
         ))}
-        <div className="absolute -top-2 z-10 h-0 w-0 border-x-[10px] border-t-[18px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_8px_rgba(234,211,146,0.8)]" />
+        <div className="absolute -top-3 z-10 h-0 w-0 border-x-[12px] border-t-[22px] border-x-transparent border-t-[color:var(--gold)] drop-shadow-[0_0_12px_rgba(234,211,146,0.9)] md:-top-4 md:border-x-[16px] md:border-t-[28px]" />
         <div
-          className={`relative h-full w-full rounded-full border-2 border-gold/60 shadow-[0_0_70px_-18px_rgba(234,211,146,0.8)] ${spinning ? "wheel-glow-active" : ""}`}
+          className={`wheel-halo relative h-full w-full rounded-full border-2 border-gold/60 ${spinning ? "wheel-glow-active" : ""}`}
           style={{
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
@@ -301,6 +302,13 @@ function WheelScreen({
             }).join(", ")})`,
           }}
         >
+          <div
+            className="pointer-events-none absolute inset-0 rounded-full"
+            style={{
+              background:
+                "radial-gradient(circle at 32% 22%, oklch(1 0 0 / 0.16), transparent 45%), radial-gradient(circle at 70% 85%, oklch(0 0 0 / 0.45), transparent 55%)",
+            }}
+          />
           {SEGMENTS.map((s, i) => {
             const a = i * segment + segment / 2;
             const flip = a > 90 && a < 270 ? 180 : 0;
@@ -311,7 +319,7 @@ function WheelScreen({
                 style={{ transform: `rotate(${a}deg)` }}
               >
                 <span
-                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)]"
+                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[10rem] md:text-[1.25rem]"
                   style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
                 >
                   {s.label}
@@ -322,12 +330,13 @@ function WheelScreen({
           })}
 
         </div>
-        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background" />
+        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-16 md:w-16" />
       </div>
 
-      <div className="mt-8 w-full max-w-md">
+      <div className="mt-8 w-full max-w-md md:max-w-xl">
         <GoldButton onClick={spin} disabled={spinning || !!result}>
           {spinning ? "Girando..." : "Girar"}
+
         </GoldButton>
       </div>
 
