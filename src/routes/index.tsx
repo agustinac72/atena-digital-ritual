@@ -398,33 +398,52 @@ function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () =>
   );
 }
 
-function OperatorBar({ given, onReset }: { given: number; onReset: () => void }) {
+function OperatorBar({
+  given,
+  onReset,
+  fullscreen,
+  onToggleFullscreen,
+}: {
+  given: number;
+  onReset: () => void;
+  fullscreen: boolean;
+  onToggleFullscreen: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const soldOut = given >= MAX_DRINKS;
 
   return (
     <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between px-4 pb-3">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3">
         <button
           onClick={() => setOpen(true)}
-          className="pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70"
+          className={`pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70 ${fullscreen ? "opacity-0" : ""}`}
           aria-label="Reiniciar juego"
         >
           ⟲
         </button>
         <p
-          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors ${
-            soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
+          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
+            fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
           }`}
         >
           {soldOut
             ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
             : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
         </p>
-        <span className="text-[0.55rem] uppercase tracking-[0.3em] text-gold/40">
+        <button
+          onClick={onToggleFullscreen}
+          className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
+        >
+          {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+        </button>
+      </div>
+      {!fullscreen && (
+        <span className="pointer-events-none fixed inset-x-0 bottom-8 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
           Powered by Atena House
         </span>
-      </div>
+      )}
+
       {open && <ResetDialog onClose={() => setOpen(false)} onDone={onReset} />}
     </>
   );
