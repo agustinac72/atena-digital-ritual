@@ -33,6 +33,7 @@ type Screen = "welcome" | "wheel";
 function AtenaApp() {
   const [screen, setScreen] = useState<Screen>("welcome");
   const [given, setGiven] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
 
   const refreshCounter = useCallback(async () => {
     const { data, error } = await supabase
@@ -47,11 +48,25 @@ function AtenaApp() {
     void refreshCounter();
   }, [refreshCounter]);
 
+  useEffect(() => {
+    const onChange = () => setFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void document.documentElement.requestFullscreen?.().catch(() => setFullscreen(true));
+    setFullscreen((v) => !v);
+  }, []);
+
   return (
-    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-8">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-6 md:px-10">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
-      <div className="flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
-        <Logo />
+      <div className="club-beams" aria-hidden />
+      <AmbientDust />
+      <div className="relative flex w-full max-w-5xl flex-1 flex-col items-center justify-center">
+        <Logo compact={fullscreen && screen === "wheel"} />
         {screen === "welcome" ? (
           <WelcomeScreen onStart={() => setScreen("wheel")} />
         ) : (
@@ -62,14 +77,51 @@ function AtenaApp() {
           />
         )}
       </div>
-      <OperatorBar given={given} onReset={refreshCounter} />
+      <OperatorBar
+        given={given}
+        onReset={refreshCounter}
+        fullscreen={fullscreen}
+        onToggleFullscreen={toggleFullscreen}
+      />
     </main>
   );
 }
 
-function Logo() {
+const DUST = Array.from({ length: 18 }, (_, i) => ({
+  left: `${(i * 37) % 100}%`,
+  size: 2 + (i % 3),
+  delay: `${(i % 9) * 1.1}s`,
+  duration: `${8 + (i % 5) * 1.6}s`,
+}));
+
+function AmbientDust() {
   return (
-    <div className="mx-auto max-h-[28vh] w-[94%] max-w-[32rem] overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {DUST.map((d, i) => (
+        <span
+          key={i}
+          className="dust-particle"
+          style={{
+            left: d.left,
+            bottom: "-10px",
+            width: d.size,
+            height: d.size,
+            animationDelay: d.delay,
+            animationDuration: d.duration,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function Logo({ compact }: { compact?: boolean }) {
+  return (
+    <div
+      className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
+        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[30rem] md:max-w-[42rem]"
+      }`}
+    >
       <img
         src={logo}
         alt="Logo oficial de ATENA HOUSE"
@@ -83,7 +135,7 @@ function Logo() {
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient sm:text-3xl">
+    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:text-5xl">
       {children}
     </h1>
   );
@@ -91,11 +143,12 @@ function Title({ children }: { children: React.ReactNode }) {
 
 function Subtitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 max-w-md text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+    <p className="mt-4 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:text-xl">
       {children}
     </p>
   );
 }
+
 
 function GoldButton({
   children,
