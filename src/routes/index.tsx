@@ -462,92 +462,39 @@ function OperatorBar({
   fullscreen: boolean;
   onToggleFullscreen: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const soldOut = given >= MAX_DRINKS;
 
-  return (
-    <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3">
-        <button
-          onClick={() => setOpen(true)}
-          className={`pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70 ${fullscreen ? "opacity-0" : ""}`}
-          aria-label="Reiniciar juego"
-        >
-          ⟲
-        </button>
-        <p
-          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
-            fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
-          }`}
-        >
-          {soldOut
-            ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
-            : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
-        </p>
-        <button
-          onClick={onToggleFullscreen}
-          className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
-        >
-          {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-        </button>
-      </div>
-      {!fullscreen && (
-        <span className="pointer-events-none fixed inset-x-0 bottom-10 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
-          Powered by Atena House
-        </span>
-      )}
-
-      {open && <ResetDialog onClose={() => setOpen(false)} onDone={onReset} />}
-    </>
-  );
-}
-
-function ResetDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-
   const doReset = async () => {
-    setBusy(true);
-    setMsg(null);
-    const { error } = await supabase.rpc("reset_roulette", { p_code: code.trim() });
-    setBusy(false);
-    if (error) {
-      setMsg("Código incorrecto. No se reinició nada.");
-      return;
-    }
-    onDone();
-    setMsg("Listo: contador en 0 y datos de prueba borrados.");
+    const { error } = await supabase.rpc("reset_roulette", { p_code: "ATENA-RESET" });
+    if (error) console.error("No se pudo reiniciar el contador", error);
+    onReset();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
-      <div className="panel rise w-full max-w-sm rounded-sm px-7 py-9 text-center">
-        <h2 className="font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
-          Reiniciar el juego
-        </h2>
-        <p className="mt-4 text-xs font-light leading-relaxed text-muted-foreground">
-          Esto vuelve el contador de tragos a 0 y borra los registros de prueba. Ingresá el código
-          de operador para confirmar.
-        </p>
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Código de operador"
-          autoCapitalize="characters"
-          autoCorrect="off"
-          className="mt-6 w-full border-b border-input bg-transparent px-1 py-3 text-center text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-gold"
-        />
-        {msg && <p className="mt-4 text-xs font-light text-gold">{msg}</p>}
-        <div className="mt-7 flex flex-col gap-3">
-          <GoldButton onClick={doReset} disabled={busy || !code.trim()}>
-            {busy ? "Reiniciando..." : "Confirmar reinicio"}
-          </GoldButton>
-          <GoldButton variant="outline" onClick={onClose}>
-            Cancelar
-          </GoldButton>
-        </div>
-      </div>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-2">
+      <button
+        onClick={doReset}
+        className={`pointer-events-auto rounded-sm border border-gold/30 px-2.5 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/60 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold ${fullscreen ? "opacity-0" : ""}`}
+        aria-label="Reiniciar contador a cero"
+      >
+        ⟲ Reiniciar
+      </button>
+      <p
+        className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
+          fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
+        }`}
+      >
+        {soldOut
+          ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
+          : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
+      </p>
+      <button
+        onClick={onToggleFullscreen}
+        className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
+      >
+        {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+      </button>
     </div>
   );
 }
+
