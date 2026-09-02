@@ -477,15 +477,16 @@ function OperatorBar({
     <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-2">
       <button
         onClick={doReset}
-        className={`pointer-events-auto rounded-sm border border-gold/30 px-2.5 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/60 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold ${fullscreen ? "opacity-0" : ""}`}
+        className={`pointer-events-auto rounded-sm border border-gold/30 px-2.5 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/60 transition-all hover:border-gold hover:bg-gold/10 hover:text-gold sm:px-3 sm:text-[0.65rem] ${visible ? "" : "pointer-events-none invisible opacity-0"}`}
         aria-label="Reiniciar contador a cero"
+        tabIndex={visible ? 0 : -1}
       >
         ⟲ Reiniciar
       </button>
       <p
-        className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
-          fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
-        }`}
+        className={`text-[0.6rem] uppercase tracking-[0.28em] transition-all sm:text-[0.75rem] ${
+          visible ? "" : "invisible opacity-0"
+        } ${soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"}`}
       >
         {soldOut
           ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
