@@ -423,23 +423,23 @@ function ResultModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
       {won && <WinBurst />}
-      <div className="panel pop-in w-full max-w-sm rounded-sm px-7 py-10 text-center">
-        <p className="text-[0.6rem] uppercase tracking-[0.45em] text-muted-foreground">
+      <div className="panel pop-in w-full max-w-md rounded-sm px-8 py-12 text-center md:max-w-2xl md:px-16 md:py-16">
+        <p className="text-[0.65rem] uppercase tracking-[0.45em] text-muted-foreground md:text-sm">
           {won ? "Voucher digital" : "Resultado"}
         </p>
-        <div className="mx-auto mt-5 w-16 gold-line" />
-        <h2 className="mt-6 font-display text-xl uppercase tracking-[0.14em] text-gold-gradient">
-          {won ? "¡Ganaste un trago!" : again ? "Otra oportunidad" : "Esta vez no"}
+        <div className="mx-auto mt-6 w-24 gold-line md:mt-8" />
+        <h2 className="mt-8 font-display text-3xl uppercase leading-tight tracking-[0.14em] text-gold-gradient md:mt-10 md:text-6xl">
+          {won ? "¡DESTINO REVELADO!" : again ? "Otra oportunidad" : "Esta vez no"}
         </h2>
-        <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
+        <p className="mt-6 font-display text-2xl leading-tight tracking-[0.08em] text-gold md:mt-8 md:text-4xl">
           {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : NO_PRIZE_LABEL}
         </p>
         {result === "lose" && (
-          <p className="mt-4 text-sm font-light text-muted-foreground">
+          <p className="mt-6 text-base font-light text-muted-foreground md:text-xl">
             La noche recién empieza. ¡Nos vemos en la pista!
           </p>
         )}
-        <div className="mt-8">
+        <div className="mt-10 md:mt-12">
           {again ? (
             <GoldButton onClick={onSpinAgain}>Girar de nuevo</GoldButton>
           ) : (
