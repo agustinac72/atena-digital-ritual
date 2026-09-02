@@ -355,9 +355,11 @@
 
 @keyframes atena-float {
   0% { opacity: 0; transform: translateY(0) scale(0.6); }
-  25% { opacity: 0.85; }
-  100% { opacity: 0; transform: translateY(-120px) scale(1.1); }
+  15% { opacity: 0.85; }
+  85% { opacity: 0.85; }
+  100% { opacity: 0; transform: translateY(-102vh) scale(1.1); }
 }
+
 
 @utility dust-particle {
   position: absolute;
