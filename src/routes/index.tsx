@@ -313,7 +313,13 @@ function WheelScreen({
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
             background: `conic-gradient(${SEGMENTS.map((s, i) => {
-              const c = s.win ? "oklch(0.42 0.06 80)" : "oklch(0.15 0.012 82)";
+              const c =
+                s.kind === "win"
+                  ? "oklch(0.42 0.06 80)"
+                  : s.kind === "again"
+                    ? "oklch(0.27 0.035 82)"
+                    : "oklch(0.15 0.012 82)";
+
               return `${c} ${i * segment}deg ${(i + 1) * segment}deg`;
             }).join(", ")})`,
           }}
@@ -402,8 +408,17 @@ function WinBurst() {
   );
 }
 
-function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () => void }) {
+function ResultModal({
+  result,
+  onNext,
+  onSpinAgain,
+}: {
+  result: "win" | "lose" | "again";
+  onNext: () => void;
+  onSpinAgain: () => void;
+}) {
   const won = result === "win";
+  const again = result === "again";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
       {won && <WinBurst />}
@@ -413,23 +428,28 @@ function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () =>
         </p>
         <div className="mx-auto mt-5 w-16 gold-line" />
         <h2 className="mt-6 font-display text-xl uppercase tracking-[0.14em] text-gold-gradient">
-          {won ? "¡Ganaste!" : "Esta vez no"}
+          {won ? "¡Ganaste un trago!" : again ? "Otra oportunidad" : "Esta vez no"}
         </h2>
         <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
-          {won ? PRIZE_LABEL : NO_PRIZE_LABEL}
+          {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : NO_PRIZE_LABEL}
         </p>
-        {!won && (
+        {result === "lose" && (
           <p className="mt-4 text-sm font-light text-muted-foreground">
             La noche recién empieza. ¡Nos vemos en la pista!
           </p>
         )}
         <div className="mt-8">
-          <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
+          {again ? (
+            <GoldButton onClick={onSpinAgain}>Girar de nuevo</GoldButton>
+          ) : (
+            <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 
 function OperatorBar({
   given,
