@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SEGMENTS, LOSE_INDEXES, PRIZE_LABEL, NO_PRIZE_LABEL } from "@/lib/atena";
+import {
+  SEGMENTS,
+  LOSE_INDEXES,
+  PRIZE_LABEL,
+  NO_PRIZE_LABEL,
+  AGAIN_LABEL,
+  WIN_RESULT_LABEL,
+} from "@/lib/atena";
 
 const logo = "/atena-logo-official.png";
 const MAX_DRINKS = 50;
