@@ -68,12 +68,12 @@ function AtenaApp() {
   }, []);
 
   return (
-    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-6 md:px-10">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-3 pb-14 pt-3 sm:px-6 md:px-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
       <div className="club-beams" aria-hidden />
       <AmbientDust />
       <div className="relative flex w-full max-w-5xl flex-1 flex-col items-center justify-center">
-        <Logo compact={fullscreen && screen === "wheel"} />
+        <Logo compact={screen === "wheel"} />
         {screen === "welcome" ? (
           <WelcomeScreen onStart={() => setScreen("wheel")} />
         ) : (
@@ -143,7 +143,7 @@ function Logo({ compact }: { compact?: boolean }) {
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:text-5xl">
+    <h1 className="mt-3 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:mt-4 md:text-5xl">
       {children}
     </h1>
   );
@@ -151,7 +151,7 @@ function Title({ children }: { children: React.ReactNode }) {
 
 function Subtitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:text-xl">
+    <p className="mt-2 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:mt-3 md:text-xl">
       {children}
     </p>
   );
@@ -284,7 +284,7 @@ function WheelScreen({
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center md:w-[min(80vw,62vh,34rem)]">
+      <div className="relative mt-4 flex aspect-square w-[min(94vw,58vh,26rem)] items-center justify-center md:mt-5 md:w-[min(92vw,68vh,44rem)]">
         <div className="orbit-slow pointer-events-none absolute -inset-5 rounded-full border border-dashed border-gold/25" />
         <div className="ring-sweep pointer-events-none absolute -inset-3 rounded-full" />
         {[
