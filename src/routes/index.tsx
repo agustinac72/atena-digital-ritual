@@ -126,8 +126,11 @@ function Logo({ compact }: { compact?: boolean }) {
   return (
     <div
       className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
-        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
+        compact
+          ? "max-h-[13vh] max-w-[18rem] md:max-h-[15vh] md:max-w-[26rem]"
+          : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
       }`}
+
     >
       <img
         src={logo}
@@ -238,7 +241,7 @@ function WheelScreen({
 }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState<"win" | "lose" | null>(null);
+  const [result, setResult] = useState<"win" | "lose" | "again" | null>(null);
 
   const segment = 360 / SEGMENTS.length;
 
@@ -246,12 +249,13 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Azar real entre los 6 casilleros.
+    // Azar real entre los 6 casilleros (2 premio, 3 sin premio, 1 girá de nuevo).
     let index = Math.floor(Math.random() * SEGMENTS.length);
-    let won = SEGMENTS[index]!.win;
+    let kind = SEGMENTS[index]!.kind;
 
     // Si salió premio, se valida el cupo global de 50 tragos en la nube.
-    if (won) {
+    if (kind === "win") {
+      let won = true;
       try {
         const { data, error } = await supabase.rpc("claim_drink");
         if (error) throw error;
@@ -260,8 +264,10 @@ function WheelScreen({
         console.error("No se pudo consultar el cupo de tragos", err);
         won = false;
       }
-      if (!won) index = pick(LOSE_INDEXES);
-      else setGiven(Math.min(given + 1, MAX_DRINKS));
+      if (!won) {
+        index = pick(LOSE_INDEXES);
+        kind = "lose";
+      } else setGiven(Math.min(given + 1, MAX_DRINKS));
     }
 
     // La aguja (arriba) queda exactamente en el centro del sector elegido.
@@ -274,10 +280,11 @@ function WheelScreen({
 
     window.setTimeout(() => {
       setSpinning(false);
-      setResult(won ? "win" : "lose");
-      saveEntry(won);
+      setResult(kind);
+      if (kind !== "again") saveEntry(kind === "win");
     }, 4200);
   };
+
 
   return (
     <section className="rise flex w-full flex-col items-center">
@@ -328,8 +335,9 @@ function WheelScreen({
                 style={{ transform: `rotate(${a}deg)` }}
               >
                 <span
-                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[10rem] md:text-[1.25rem]"
+                  className="absolute left-1/2 top-[20%] block w-[7.5rem] text-center text-[0.95rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[12.5rem] md:text-[1.6rem]"
                   style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
+
                 >
                   {s.label}
                 </span>
@@ -339,17 +347,24 @@ function WheelScreen({
           })}
 
         </div>
-        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-16 md:w-16" />
+        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-20 md:w-20" />
       </div>
 
-      <div className="mt-8 w-full max-w-md md:max-w-xl">
+      <div className="mt-5 w-full max-w-md md:mt-6 md:max-w-2xl">
         <GoldButton onClick={spin} disabled={spinning || !!result}>
           {spinning ? "Girando..." : "Girar"}
 
         </GoldButton>
       </div>
 
-      {result && <ResultModal result={result} onNext={onNextParticipant} />}
+      {result && (
+        <ResultModal
+          result={result}
+          onNext={onNextParticipant}
+          onSpinAgain={() => setResult(null)}
+        />
+      )}
+
     </section>
   );
 }
