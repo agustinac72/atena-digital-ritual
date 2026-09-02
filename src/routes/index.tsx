@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { SEGMENTS, LOSE_INDEXES, PRIZE_LABEL, NO_PRIZE_LABEL } from "@/lib/atena";
+import {
+  SEGMENTS,
+  LOSE_INDEXES,
+  PRIZE_LABEL,
+  NO_PRIZE_LABEL,
+  AGAIN_LABEL,
+  WIN_RESULT_LABEL,
+} from "@/lib/atena";
 
 const logo = "/atena-logo-official.png";
 const MAX_DRINKS = 50;
@@ -61,12 +68,12 @@ function AtenaApp() {
   }, []);
 
   return (
-    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-6 pb-32 pt-6 md:px-10">
+    <main className="ritual-bg relative flex min-h-[100dvh] flex-col items-center overflow-hidden px-3 pb-14 pt-3 sm:px-6 md:px-8">
       <div className="pointer-events-none absolute inset-x-0 top-0 gold-line glow-pulse" />
       <div className="club-beams" aria-hidden />
       <AmbientDust />
       <div className="relative flex w-full max-w-5xl flex-1 flex-col items-center justify-center">
-        <Logo compact={fullscreen && screen === "wheel"} />
+        <Logo compact={screen === "wheel"} />
         {screen === "welcome" ? (
           <WelcomeScreen onStart={() => setScreen("wheel")} />
         ) : (
@@ -119,8 +126,11 @@ function Logo({ compact }: { compact?: boolean }) {
   return (
     <div
       className={`logo-glow mx-auto w-[92%] overflow-hidden transition-all duration-500 ${
-        compact ? "max-h-[14vh] max-w-[20rem]" : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
+        compact
+          ? "max-h-[13vh] max-w-[18rem] md:max-h-[15vh] md:max-w-[26rem]"
+          : "max-h-[30vh] max-w-[32rem] md:max-w-[44rem]"
       }`}
+
     >
       <img
         src={logo}
@@ -136,7 +146,7 @@ function Logo({ compact }: { compact?: boolean }) {
 
 function Title({ children }: { children: React.ReactNode }) {
   return (
-    <h1 className="mt-6 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:text-5xl">
+    <h1 className="mt-3 text-center font-display text-2xl leading-tight tracking-[0.15em] text-gold-gradient drop-shadow-[0_0_22px_rgba(234,211,146,0.35)] sm:text-3xl md:mt-4 md:text-5xl">
       {children}
     </h1>
   );
@@ -144,7 +154,7 @@ function Title({ children }: { children: React.ReactNode }) {
 
 function Subtitle({ children }: { children: React.ReactNode }) {
   return (
-    <p className="mt-4 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:text-xl">
+    <p className="mt-2 max-w-2xl text-center text-sm font-light leading-relaxed text-muted-foreground sm:text-base md:mt-3 md:text-xl">
       {children}
     </p>
   );
@@ -231,7 +241,7 @@ function WheelScreen({
 }) {
   const [angle, setAngle] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState<"win" | "lose" | null>(null);
+  const [result, setResult] = useState<"win" | "lose" | "again" | null>(null);
 
   const segment = 360 / SEGMENTS.length;
 
@@ -239,12 +249,13 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Azar real entre los 6 casilleros.
+    // Azar real entre los 6 casilleros (2 premio, 3 sin premio, 1 girá de nuevo).
     let index = Math.floor(Math.random() * SEGMENTS.length);
-    let won = SEGMENTS[index]!.win;
+    let kind = SEGMENTS[index]!.kind;
 
     // Si salió premio, se valida el cupo global de 50 tragos en la nube.
-    if (won) {
+    if (kind === "win") {
+      let won = true;
       try {
         const { data, error } = await supabase.rpc("claim_drink");
         if (error) throw error;
@@ -253,8 +264,10 @@ function WheelScreen({
         console.error("No se pudo consultar el cupo de tragos", err);
         won = false;
       }
-      if (!won) index = pick(LOSE_INDEXES);
-      else setGiven(Math.min(given + 1, MAX_DRINKS));
+      if (!won) {
+        index = pick(LOSE_INDEXES);
+        kind = "lose";
+      } else setGiven(Math.min(given + 1, MAX_DRINKS));
     }
 
     // La aguja (arriba) queda exactamente en el centro del sector elegido.
@@ -267,17 +280,18 @@ function WheelScreen({
 
     window.setTimeout(() => {
       setSpinning(false);
-      setResult(won ? "win" : "lose");
-      saveEntry(won);
+      setResult(kind);
+      if (kind !== "again") saveEntry(kind === "win");
     }, 4200);
   };
+
 
   return (
     <section className="rise flex w-full flex-col items-center">
       <Title>LA RUEDA DE ATENA</Title>
       <Subtitle>Un solo giro. El destino elige tu suerte.</Subtitle>
 
-      <div className="relative mt-6 flex aspect-square w-[min(88vw,52vh,22rem)] items-center justify-center md:w-[min(80vw,62vh,34rem)]">
+      <div className="relative mt-4 flex aspect-square w-[min(94vw,58vh,26rem)] items-center justify-center md:mt-5 md:w-[min(92vw,68vh,44rem)]">
         <div className="orbit-slow pointer-events-none absolute -inset-5 rounded-full border border-dashed border-gold/25" />
         <div className="ring-sweep pointer-events-none absolute -inset-3 rounded-full" />
         {[
@@ -299,7 +313,13 @@ function WheelScreen({
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
             background: `conic-gradient(${SEGMENTS.map((s, i) => {
-              const c = s.win ? "oklch(0.42 0.06 80)" : "oklch(0.15 0.012 82)";
+              const c =
+                s.kind === "win"
+                  ? "oklch(0.42 0.06 80)"
+                  : s.kind === "again"
+                    ? "oklch(0.27 0.035 82)"
+                    : "oklch(0.15 0.012 82)";
+
               return `${c} ${i * segment}deg ${(i + 1) * segment}deg`;
             }).join(", ")})`,
           }}
@@ -321,8 +341,9 @@ function WheelScreen({
                 style={{ transform: `rotate(${a}deg)` }}
               >
                 <span
-                  className="absolute left-1/2 top-[20%] block w-[7rem] text-center text-[0.9rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[10rem] md:text-[1.25rem]"
+                  className="absolute left-1/2 top-[20%] block w-[7.5rem] text-center text-[0.95rem] font-bold uppercase leading-[1.15] tracking-[0.02em] text-gold drop-shadow-[0_1px_3px_rgba(0,0,0,1)] md:w-[12.5rem] md:text-[1.6rem]"
                   style={{ transform: `translate(-50%, -50%) rotate(${flip}deg)` }}
+
                 >
                   {s.label}
                 </span>
@@ -332,17 +353,24 @@ function WheelScreen({
           })}
 
         </div>
-        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-16 md:w-16" />
+        <div className="absolute h-12 w-12 rounded-full border-2 border-gold/70 bg-background shadow-[0_0_25px_-4px_rgba(234,211,146,0.8)] md:h-20 md:w-20" />
       </div>
 
-      <div className="mt-8 w-full max-w-md md:max-w-xl">
+      <div className="mt-5 w-full max-w-md md:mt-6 md:max-w-2xl">
         <GoldButton onClick={spin} disabled={spinning || !!result}>
           {spinning ? "Girando..." : "Girar"}
 
         </GoldButton>
       </div>
 
-      {result && <ResultModal result={result} onNext={onNextParticipant} />}
+      {result && (
+        <ResultModal
+          result={result}
+          onNext={onNextParticipant}
+          onSpinAgain={() => setResult(null)}
+        />
+      )}
+
     </section>
   );
 }
@@ -380,8 +408,17 @@ function WinBurst() {
   );
 }
 
-function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () => void }) {
+function ResultModal({
+  result,
+  onNext,
+  onSpinAgain,
+}: {
+  result: "win" | "lose" | "again";
+  onNext: () => void;
+  onSpinAgain: () => void;
+}) {
   const won = result === "win";
+  const again = result === "again";
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
       {won && <WinBurst />}
@@ -391,23 +428,28 @@ function ResultModal({ result, onNext }: { result: "win" | "lose"; onNext: () =>
         </p>
         <div className="mx-auto mt-5 w-16 gold-line" />
         <h2 className="mt-6 font-display text-xl uppercase tracking-[0.14em] text-gold-gradient">
-          {won ? "¡Ganaste!" : "Esta vez no"}
+          {won ? "¡Ganaste un trago!" : again ? "Otra oportunidad" : "Esta vez no"}
         </h2>
         <p className="mt-4 font-display text-xl leading-tight tracking-[0.08em] text-gold">
-          {won ? PRIZE_LABEL : NO_PRIZE_LABEL}
+          {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : NO_PRIZE_LABEL}
         </p>
-        {!won && (
+        {result === "lose" && (
           <p className="mt-4 text-sm font-light text-muted-foreground">
             La noche recién empieza. ¡Nos vemos en la pista!
           </p>
         )}
         <div className="mt-8">
-          <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
+          {again ? (
+            <GoldButton onClick={onSpinAgain}>Girar de nuevo</GoldButton>
+          ) : (
+            <GoldButton onClick={onNext}>Siguiente participante</GoldButton>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
 
 function OperatorBar({
   given,
@@ -420,92 +462,39 @@ function OperatorBar({
   fullscreen: boolean;
   onToggleFullscreen: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const soldOut = given >= MAX_DRINKS;
 
-  return (
-    <>
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-3">
-        <button
-          onClick={() => setOpen(true)}
-          className={`pointer-events-auto text-[0.55rem] uppercase tracking-[0.3em] text-gold/25 transition-colors hover:text-gold/70 ${fullscreen ? "opacity-0" : ""}`}
-          aria-label="Reiniciar juego"
-        >
-          ⟲
-        </button>
-        <p
-          className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
-            fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
-          }`}
-        >
-          {soldOut
-            ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
-            : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
-        </p>
-        <button
-          onClick={onToggleFullscreen}
-          className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
-        >
-          {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
-        </button>
-      </div>
-      {!fullscreen && (
-        <span className="pointer-events-none fixed inset-x-0 bottom-10 text-center text-[0.55rem] uppercase tracking-[0.3em] text-gold/30">
-          Powered by Atena House
-        </span>
-      )}
-
-      {open && <ResetDialog onClose={() => setOpen(false)} onDone={onReset} />}
-    </>
-  );
-}
-
-function ResetDialog({ onClose, onDone }: { onClose: () => void; onDone: () => void }) {
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
-
   const doReset = async () => {
-    setBusy(true);
-    setMsg(null);
-    const { error } = await supabase.rpc("reset_roulette", { p_code: code.trim() });
-    setBusy(false);
-    if (error) {
-      setMsg("Código incorrecto. No se reinició nada.");
-      return;
-    }
-    onDone();
-    setMsg("Listo: contador en 0 y datos de prueba borrados.");
+    const { error } = await supabase.rpc("reset_roulette", { p_code: "ATENA-RESET" });
+    if (error) console.error("No se pudo reiniciar el contador", error);
+    onReset();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
-      <div className="panel rise w-full max-w-sm rounded-sm px-7 py-9 text-center">
-        <h2 className="font-display text-lg uppercase tracking-[0.14em] text-gold-gradient">
-          Reiniciar el juego
-        </h2>
-        <p className="mt-4 text-xs font-light leading-relaxed text-muted-foreground">
-          Esto vuelve el contador de tragos a 0 y borra los registros de prueba. Ingresá el código
-          de operador para confirmar.
-        </p>
-        <input
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Código de operador"
-          autoCapitalize="characters"
-          autoCorrect="off"
-          className="mt-6 w-full border-b border-input bg-transparent px-1 py-3 text-center text-sm text-foreground outline-none placeholder:text-muted-foreground/60 focus:border-gold"
-        />
-        {msg && <p className="mt-4 text-xs font-light text-gold">{msg}</p>}
-        <div className="mt-7 flex flex-col gap-3">
-          <GoldButton onClick={doReset} disabled={busy || !code.trim()}>
-            {busy ? "Reiniciando..." : "Confirmar reinicio"}
-          </GoldButton>
-          <GoldButton variant="outline" onClick={onClose}>
-            Cancelar
-          </GoldButton>
-        </div>
-      </div>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-2">
+      <button
+        onClick={doReset}
+        className={`pointer-events-auto rounded-sm border border-gold/30 px-2.5 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/60 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold ${fullscreen ? "opacity-0" : ""}`}
+        aria-label="Reiniciar contador a cero"
+      >
+        ⟲ Reiniciar
+      </button>
+      <p
+        className={`text-[0.6rem] uppercase tracking-[0.28em] transition-colors sm:text-[0.7rem] ${
+          fullscreen ? "opacity-0" : soldOut ? "font-semibold text-[#e0574f]" : "text-gold/45"
+        }`}
+      >
+        {soldOut
+          ? `Stock de tragos agotado (${MAX_DRINKS}/${MAX_DRINKS})`
+          : `Tragos entregados: ${given} / ${MAX_DRINKS}`}
+      </p>
+      <button
+        onClick={onToggleFullscreen}
+        className="pointer-events-auto rounded-sm border border-gold/40 px-3 py-1.5 text-[0.55rem] uppercase tracking-[0.28em] text-gold/70 transition-colors hover:border-gold hover:bg-gold/10 hover:text-gold sm:text-[0.65rem]"
+      >
+        {fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+      </button>
     </div>
   );
 }
+
