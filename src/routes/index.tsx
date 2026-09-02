@@ -87,6 +87,7 @@ function AtenaApp() {
       <OperatorBar
         given={given}
         onReset={refreshCounter}
+        visible={screen === "welcome"}
         fullscreen={fullscreen}
         onToggleFullscreen={toggleFullscreen}
       />
@@ -454,11 +455,13 @@ function ResultModal({
 function OperatorBar({
   given,
   onReset,
+  visible,
   fullscreen,
   onToggleFullscreen,
 }: {
   given: number;
   onReset: () => void;
+  visible: boolean;
   fullscreen: boolean;
   onToggleFullscreen: () => void;
 }) {
