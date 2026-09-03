@@ -429,16 +429,11 @@ function ResultModal({
         </p>
         <div className="mx-auto mt-6 w-24 gold-line md:mt-8" />
         <h2 className="mt-8 font-display text-3xl uppercase leading-tight tracking-[0.14em] text-gold-gradient md:mt-10 md:text-6xl">
-          {won ? "¡DESTINO REVELADO!" : again ? "Otra oportunidad" : "Esta vez no"}
+          {won ? "¡DESTINO REVELADO!" : again ? "Otra oportunidad" : "ESTA VEZ NO"}
         </h2>
         <p className="mt-6 font-display text-2xl leading-tight tracking-[0.08em] text-gold md:mt-8 md:text-4xl">
-          {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : NO_PRIZE_LABEL}
+          {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : "La noche recién empieza. ¡Nos vemos en la pista!"}
         </p>
-        {result === "lose" && (
-          <p className="mt-6 text-base font-light text-muted-foreground md:text-xl">
-            La noche recién empieza. ¡Nos vemos en la pista!
-          </p>
-        )}
         <div className="mt-10 md:mt-12">
           {again ? (
             <GoldButton onClick={onSpinAgain}>Girar de nuevo</GoldButton>
