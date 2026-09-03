@@ -421,18 +421,34 @@ function ResultModal({
 }) {
   const won = result === "win";
   const again = result === "again";
+
+  useEffect(() => {
+    if (!won) return;
+    const colors = ["#EAD392", "#BA9958", "#ffffff", "#f5e7bf"];
+    confetti({ particleCount: 120, spread: 75, origin: { y: 0.6 }, colors });
+    const end = Date.now() + 1200;
+    const frame = () => {
+      confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors });
+      confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, [won]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-6 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/92 px-4 backdrop-blur-sm sm:px-6">
       {won && <WinBurst />}
-      <div className="panel pop-in w-full max-w-md rounded-sm px-8 py-12 text-center md:max-w-2xl md:px-16 md:py-16">
-        <p className="text-[0.65rem] uppercase tracking-[0.45em] text-muted-foreground md:text-sm">
+      <div
+        className={`panel pop-in w-full max-w-[92vw] overflow-hidden break-words rounded-sm px-6 py-8 text-center sm:max-w-lg sm:px-10 sm:py-10 md:max-w-xl md:px-14 md:py-12 ${won ? "win-glow" : ""}`}
+      >
+        <p className="text-[0.65rem] uppercase tracking-[0.45em] text-muted-foreground sm:text-xs">
           {won ? "Voucher digital" : "Resultado"}
         </p>
-        <div className="mx-auto mt-6 w-24 gold-line md:mt-8" />
-        <h2 className="mt-8 font-display text-3xl uppercase leading-tight tracking-[0.14em] text-gold-gradient md:mt-10 md:text-6xl">
+        <div className="mx-auto mt-4 w-24 gold-line sm:mt-5" />
+        <h2 className="mt-6 break-words font-display text-2xl uppercase leading-tight tracking-[0.14em] text-gold-gradient sm:mt-7 sm:text-3xl md:text-4xl">
           {won ? "¡DESTINO REVELADO!" : again ? "Otra oportunidad" : "ESTA VEZ NO"}
         </h2>
-        <p className="mt-6 font-display text-2xl leading-tight tracking-[0.08em] text-gold md:mt-8 md:text-4xl">
+        <p className="mt-4 break-words font-display text-lg leading-snug tracking-[0.08em] text-gold sm:mt-5 sm:text-xl md:text-2xl">
           {won ? WIN_RESULT_LABEL : again ? AGAIN_LABEL : "La noche recién empieza. ¡Nos vemos en la pista!"}
         </p>
         <div className="mt-10 md:mt-12">
