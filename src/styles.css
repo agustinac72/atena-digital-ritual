@@ -50,8 +50,11 @@
  */
 
 @theme inline {
-  --font-display: "Albertus Nova", "Cinzel", serif;
-  --font-sans: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --font-display:
+    "Albertus Nova", "Cinzel", serif, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji";
+  --font-sans:
+    "Montserrat", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Noto Color Emoji";
   --color-gold: var(--gold);
   --color-gold-deep: var(--gold-deep);
   --radius-sm: calc(var(--radius) - 4px);
