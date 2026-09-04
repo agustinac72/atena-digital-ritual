@@ -5,10 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   SEGMENTS,
   LOSE_INDEXES,
+  WIN_INDEXES,
+  AGAIN_INDEX,
   PRIZE_LABEL,
   NO_PRIZE_LABEL,
   AGAIN_LABEL,
   WIN_RESULT_LABEL,
+  type SegmentKind,
 } from "@/lib/atena";
 
 const logo = "/atena-logo-official.png";
@@ -258,9 +261,15 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Azar real entre los 6 casilleros (2 premio, 3 sin premio, 1 girá de nuevo).
-    let index = Math.floor(Math.random() * SEGMENTS.length);
-    let kind = SEGMENTS[index]!.kind;
+    // Probabilidad ajustada: 10% premio, 75% sin premio, 15% girá de nuevo.
+    const roll = Math.random();
+    let kind: SegmentKind;
+    if (roll < 0.10) kind = "win";
+    else if (roll < 0.85) kind = "lose";
+    else kind = "again";
+
+    let index =
+      kind === "win" ? pick(WIN_INDEXES) : kind === "lose" ? pick(LOSE_INDEXES) : AGAIN_INDEX;
 
     // Si salió premio, se valida el cupo global de 50 tragos en la nube.
     if (kind === "win") {

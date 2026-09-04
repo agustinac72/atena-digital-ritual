@@ -24,6 +24,7 @@ export const WIN_INDEXES = SEGMENTS.map((s, i) => (s.kind === "win" ? i : -1)).f
 export const LOSE_INDEXES = SEGMENTS.map((s, i) => (s.kind === "lose" ? i : -1)).filter(
   (i) => i >= 0,
 );
+export const AGAIN_INDEX = SEGMENTS.findIndex((s) => s.kind === "again");
 
 export const WIN_RESULT_LABEL = "¡Ganaste un trago!";
 
