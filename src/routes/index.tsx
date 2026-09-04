@@ -5,10 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   SEGMENTS,
   LOSE_INDEXES,
+  WIN_INDEXES,
+  AGAIN_INDEX,
   PRIZE_LABEL,
   NO_PRIZE_LABEL,
   AGAIN_LABEL,
   WIN_RESULT_LABEL,
+  type SegmentKind,
 } from "@/lib/atena";
 
 const logo = "/atena-logo-official.png";
