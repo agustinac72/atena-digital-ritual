@@ -261,10 +261,10 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Probabilidad ajustada: 10% premio, 75% sin premio, 15% girá de nuevo.
+    // Probabilidad ajustada: 20% premio, 65% sin premio, 15% girá de nuevo.
     const roll = Math.random();
     let kind: SegmentKind;
-    if (roll < 0.10) kind = "win";
+    if (roll < 0.20) kind = "win";
     else if (roll < 0.85) kind = "lose";
     else kind = "again";
 
