@@ -14,6 +14,13 @@ import {
 const logo = "/atena-logo-official.png";
 const MAX_DRINKS = 50;
 
+// Paleta alternada para que ningún casillero contiguo comparta color.
+const WHEEL_COLORS = [
+  "oklch(0.62 0.09 82)", // dorado claro
+  "oklch(0.12 0.01 82)", // negro azabache
+  "oklch(0.42 0.06 80)", // dorado bronce
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -315,13 +322,7 @@ function WheelScreen({
             transform: `rotate(${angle}deg)`,
             transition: "transform 4s cubic-bezier(0.12, 0.75, 0.1, 1)",
             background: `conic-gradient(${SEGMENTS.map((s, i) => {
-              const c =
-                s.kind === "win"
-                  ? "oklch(0.42 0.06 80)"
-                  : s.kind === "again"
-                    ? "oklch(0.27 0.035 82)"
-                    : "oklch(0.15 0.012 82)";
-
+              const c = WHEEL_COLORS[i % WHEEL_COLORS.length];
               return `${c} ${i * segment}deg ${(i + 1) * segment}deg`;
             }).join(", ")})`,
           }}
