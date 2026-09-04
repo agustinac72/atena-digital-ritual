@@ -14,6 +14,13 @@ import {
 const logo = "/atena-logo-official.png";
 const MAX_DRINKS = 50;
 
+// Paleta alternada para que ningún casillero contiguo comparta color.
+const WHEEL_COLORS = [
+  "oklch(0.62 0.09 82)", // dorado claro
+  "oklch(0.12 0.01 82)", // negro azabache
+  "oklch(0.42 0.06 80)", // dorado bronce
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
