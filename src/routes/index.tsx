@@ -1,20 +1,27 @@
 import { createFileRoute } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import {
   SEGMENTS,
   LOSE_INDEXES,
   WIN_INDEXES,
-  PRIZE_LABEL,
-  NO_PRIZE_LABEL,
   AGAIN_LABEL,
   WIN_RESULT_LABEL,
   type SegmentKind,
 } from "@/lib/atena";
+import {
+  MAX_DRINKS,
+  claimDrink,
+  flushQueue,
+  getLocalGiven,
+  loadGiven,
+  resetCounter,
+  saveEntry,
+  setLocalGiven,
+} from "@/lib/offline-prizes";
 
 const logo = "/atena-logo-official.png";
-const MAX_DRINKS = 50;
+
 
 // Paleta alternada para que ningún casillero contiguo comparta color.
 const WHEEL_COLORS = [
