@@ -6,7 +6,6 @@ import {
   SEGMENTS,
   LOSE_INDEXES,
   WIN_INDEXES,
-  AGAIN_INDEX,
   PRIZE_LABEL,
   NO_PRIZE_LABEL,
   AGAIN_LABEL,
@@ -261,15 +260,11 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Probabilidad ajustada: 20% premio, 65% sin premio, 15% girá de nuevo.
-    const roll = Math.random();
-    let kind: SegmentKind;
-    if (roll < 0.20) kind = "win";
-    else if (roll < 0.85) kind = "lose";
-    else kind = "again";
+    // Probabilidad estricta: 10% premio (1-10), 90% sin premio (11-100).
+    const roll = 1 + Math.floor(Math.random() * 100);
+    let kind: SegmentKind = roll <= 10 ? "win" : "lose";
 
-    let index =
-      kind === "win" ? pick(WIN_INDEXES) : kind === "lose" ? pick(LOSE_INDEXES) : AGAIN_INDEX;
+    let index = kind === "win" ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
 
     // Si salió premio, se valida el cupo global de 50 tragos en la nube.
     if (kind === "win") {
@@ -299,7 +294,7 @@ function WheelScreen({
     window.setTimeout(() => {
       setSpinning(false);
       setResult(kind);
-      if (kind !== "again") saveEntry(kind === "win");
+      saveEntry(kind === "win");
     }, 4200);
   };
 
