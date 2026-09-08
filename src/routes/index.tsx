@@ -295,7 +295,7 @@ function WheelScreen({
     window.setTimeout(() => {
       setSpinning(false);
       setResult(kind);
-      if (kind !== "again") saveEntry(kind === "win");
+      saveEntry(kind === "win");
     }, 4200);
   };
 
