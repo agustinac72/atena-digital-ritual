@@ -57,6 +57,7 @@ export function resetLocal() {
   window.localStorage.setItem(COUNTER_KEY, "0");
   window.localStorage.removeItem(QUEUE_KEY);
   window.localStorage.removeItem(COOLDOWN_KEY);
+  window.localStorage.removeItem(LAST_RESULT_KEY);
 }
 
 /** Lee el cupo en la nube; si no hay conexión, usa el contador local. */
