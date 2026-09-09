@@ -5,6 +5,7 @@ import {
   SEGMENTS,
   LOSE_INDEXES,
   WIN_INDEXES,
+  AGAIN_INDEX,
   AGAIN_LABEL,
   WIN_RESULT_LABEL,
   type SegmentKind,
