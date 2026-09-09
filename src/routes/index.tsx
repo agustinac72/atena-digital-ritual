@@ -13,10 +13,12 @@ import {
   MAX_DRINKS,
   claimDrink,
   flushQueue,
+  getCooldown,
   getLocalGiven,
   loadGiven,
   resetCounter,
   saveEntry,
+  setCooldown,
   setLocalGiven,
 } from "@/lib/offline-prizes";
 
@@ -253,9 +255,17 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Probabilidad estricta: 10% premio (1-10), 90% sin premio (11-100).
-    const roll = 1 + Math.floor(Math.random() * 100);
-    let kind: SegmentKind = roll <= 10 ? "win" : "lose";
+    // Enfriamiento: tras un premio, los próximos 4 giros son perdedores.
+    const cooldown = getCooldown();
+    let kind: SegmentKind;
+    if (cooldown > 0) {
+      setCooldown(cooldown - 1);
+      kind = "lose";
+    } else {
+      // Probabilidad estricta: 10% premio (1-10), 90% sin premio (11-100).
+      const roll = 1 + Math.floor(Math.random() * 100);
+      kind = roll <= 10 ? "win" : "lose";
+    }
 
     let index = kind === "win" ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
 
@@ -265,7 +275,10 @@ function WheelScreen({
       if (!won) {
         index = pick(LOSE_INDEXES);
         kind = "lose";
-      } else setGiven(Math.min(given + 1, MAX_DRINKS));
+      } else {
+        setCooldown(4);
+        setGiven(Math.min(given + 1, MAX_DRINKS));
+      }
     }
 
 
