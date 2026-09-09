@@ -60,13 +60,11 @@ function AtenaApp() {
   const [fullscreen, setFullscreen] = useState(false);
 
   const refreshCounter = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("prizes_counter")
-      .select("total_drinks_given")
-      .eq("id", 1)
-      .maybeSingle();
-    if (!error && data) setGiven(data.total_drinks_given ?? 0);
+    setGiven(getLocalGiven());
+    setGiven(await loadGiven());
+    void flushQueue();
   }, []);
+
 
   useEffect(() => {
     void refreshCounter();
@@ -230,19 +228,7 @@ function WelcomeScreen({ onStart }: { onStart: () => void }) {
 }
 
 
-function saveEntry(wonDrink: boolean) {
-  supabase
-    .from("atena_entries")
-    .insert({
-      instagram_handle: "operador-tablet",
-      experience: "trago",
-      prize: wonDrink ? PRIZE_LABEL : NO_PRIZE_LABEL,
-      won_drink: wonDrink,
-    })
-    .then(({ error }) => {
-      if (error) console.error("No se pudo guardar la entrada", error);
-    });
-}
+
 
 function pick(list: number[]): number {
   return list[Math.floor(Math.random() * list.length)]!;
@@ -273,22 +259,15 @@ function WheelScreen({
 
     let index = kind === "win" ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
 
-    // Si salió premio, se valida el cupo global de 50 tragos en la nube.
+    // Si salió premio, se valida el cupo de 50 tragos (nube u offline).
     if (kind === "win") {
-      let won = true;
-      try {
-        const { data, error } = await supabase.rpc("claim_drink");
-        if (error) throw error;
-        won = data === true;
-      } catch (err) {
-        console.error("No se pudo consultar el cupo de tragos", err);
-        won = false;
-      }
+      const won = await claimDrink();
       if (!won) {
         index = pick(LOSE_INDEXES);
         kind = "lose";
       } else setGiven(Math.min(given + 1, MAX_DRINKS));
     }
+
 
     // La aguja (arriba) queda exactamente en el centro del sector elegido.
     const extraTurns = 5 + Math.floor(Math.random() * 4);
@@ -492,10 +471,11 @@ function OperatorBar({
   const soldOut = given >= MAX_DRINKS;
 
   const doReset = async () => {
-    const { error } = await supabase.rpc("reset_roulette", { p_code: "ATENA-RESET" });
-    if (error) console.error("No se pudo reiniciar el contador", error);
+    setLocalGiven(0);
+    await resetCounter();
     onReset();
   };
+
 
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 flex items-end justify-between gap-3 px-4 pb-2">
