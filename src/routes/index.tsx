@@ -5,6 +5,7 @@ import {
   SEGMENTS,
   LOSE_INDEXES,
   WIN_INDEXES,
+  AGAIN_INDEX,
   AGAIN_LABEL,
   WIN_RESULT_LABEL,
   type SegmentKind,
@@ -13,12 +14,12 @@ import {
   MAX_DRINKS,
   claimDrink,
   flushQueue,
-  getCooldown,
+  getLastResult,
   getLocalGiven,
   loadGiven,
   resetCounter,
   saveEntry,
-  setCooldown,
+  setLastResult,
   setLocalGiven,
 } from "@/lib/offline-prizes";
 
@@ -255,19 +256,20 @@ function WheelScreen({
     if (spinning || result) return;
     setSpinning(true);
 
-    // Enfriamiento: tras un premio, los próximos 4 giros son perdedores.
-    const cooldown = getCooldown();
+    // Bloqueo de consecutivos: si el tiro anterior fue premio,
+    // el próximo solo puede ser "GIRÁ DE NUEVO" (25%) o perdedor (75%).
+    const lastWasWin = getLastResult() === "win";
+    const roll = 1 + Math.floor(Math.random() * 100);
     let kind: SegmentKind;
-    if (cooldown > 0) {
-      setCooldown(cooldown - 1);
-      kind = "lose";
+    if (lastWasWin) {
+      kind = roll <= 25 ? "again" : "lose";
     } else {
-      // Probabilidad estricta: 10% premio (1-10), 90% sin premio (11-100).
-      const roll = 1 + Math.floor(Math.random() * 100);
-      kind = roll <= 10 ? "win" : "lose";
+      // Distribución normal: 10% premio, 20% girá de nuevo, 70% sin premio.
+      kind = roll <= 10 ? "win" : roll <= 30 ? "again" : "lose";
     }
 
-    let index = kind === "win" ? pick(WIN_INDEXES) : pick(LOSE_INDEXES);
+    let index =
+      kind === "win" ? pick(WIN_INDEXES) : kind === "again" ? AGAIN_INDEX : pick(LOSE_INDEXES);
 
     // Si salió premio, se valida el cupo de 50 tragos (nube u offline).
     if (kind === "win") {
@@ -276,10 +278,10 @@ function WheelScreen({
         index = pick(LOSE_INDEXES);
         kind = "lose";
       } else {
-        setCooldown(4);
         setGiven(Math.min(given + 1, MAX_DRINKS));
       }
     }
+    setLastResult(kind);
 
 
     // La aguja (arriba) queda exactamente en el centro del sector elegido.

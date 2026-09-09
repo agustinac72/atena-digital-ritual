@@ -6,14 +6,18 @@ export const MAX_DRINKS = 50;
 const COUNTER_KEY = "atena.drinks.given";
 const QUEUE_KEY = "atena.entries.queue";
 const COOLDOWN_KEY = "atena.spins.cooldown";
+const LAST_RESULT_KEY = "atena.spins.last";
 
-export function getCooldown(): number {
-  return readNumber(COOLDOWN_KEY);
+/** Resultado del último giro realizado (persistente, funciona offline). */
+export function getLastResult(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(LAST_RESULT_KEY);
 }
 
-export function setCooldown(n: number) {
+export function setLastResult(value: string | null) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(COOLDOWN_KEY, String(Math.max(0, n)));
+  if (value === null) window.localStorage.removeItem(LAST_RESULT_KEY);
+  else window.localStorage.setItem(LAST_RESULT_KEY, value);
 }
 
 type QueuedEntry = { won_drink: boolean; created_at: string };
@@ -53,6 +57,7 @@ export function resetLocal() {
   window.localStorage.setItem(COUNTER_KEY, "0");
   window.localStorage.removeItem(QUEUE_KEY);
   window.localStorage.removeItem(COOLDOWN_KEY);
+  window.localStorage.removeItem(LAST_RESULT_KEY);
 }
 
 /** Lee el cupo en la nube; si no hay conexión, usa el contador local. */
