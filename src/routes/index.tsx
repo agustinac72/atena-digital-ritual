@@ -13,12 +13,9 @@ import {
 import {
   MAX_DRINKS,
   claimDrink,
-  flushQueue,
   getLastResult,
   getLocalGiven,
-  loadGiven,
   resetCounter,
-  saveEntry,
   setLastResult,
   setLocalGiven,
 } from "@/lib/offline-prizes";
