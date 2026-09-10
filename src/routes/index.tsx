@@ -59,10 +59,8 @@ function AtenaApp() {
   const [given, setGiven] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
 
-  const refreshCounter = useCallback(async () => {
+  const refreshCounter = useCallback(() => {
     setGiven(getLocalGiven());
-    setGiven(await loadGiven());
-    void flushQueue();
   }, []);
 
 
@@ -268,9 +266,9 @@ function WheelScreen({
     let index =
       kind === "win" ? pick(WIN_INDEXES) : kind === "again" ? AGAIN_INDEX : pick(LOSE_INDEXES);
 
-    // Si salió premio, se valida el cupo de 50 tragos (nube u offline).
+    // Si salió premio, se valida el cupo de 50 tragos (local).
     if (kind === "win") {
-      const won = await claimDrink();
+      const won = claimDrink();
       if (!won) {
         index = pick(LOSE_INDEXES);
         kind = "lose";
@@ -292,7 +290,6 @@ function WheelScreen({
     window.setTimeout(() => {
       setSpinning(false);
       setResult(kind);
-      saveEntry(kind === "win");
     }, 4200);
   };
 
